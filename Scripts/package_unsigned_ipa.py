@@ -8,12 +8,18 @@ from pathlib import Path
 import plistlib
 import subprocess
 import zipfile
+import shutil
+import tempfile
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('app', type=Path, help='Release-iphoneos/ScreenTranslate.app')
 parser.add_argument('output', type=Path, help='Output .ipa file')
 args = parser.parse_args()
-app = args.app.resolve()
+# Work on a temporary copy so packaging never changes the supplied build.
+# Release builds can still contain linker debug-map paths unless explicitly stripped.
+staging = tempfile.TemporaryDirectory(prefix="screenreader-package-")
+app = Path(staging.name) / args.app.name
+shutil.copytree(args.app.resolve(), app, symlinks=True)
 info = plistlib.loads((app / 'Info.plist').read_bytes())
 assert info['DTPlatformName'] == 'iphoneos', 'A device build is required'
 assert info['CFBundleShortVersionString'] == '1.0.0'
@@ -40,6 +46,13 @@ for p in app.rglob('*'):
     if p.is_file() and p != executable and p.read_bytes()[:4] in [b'\xcf\xfa\xed\xfe', b'\xfe\xed\xfa\xcf', b'\xca\xfe\xba\xbe']:
         unsigned_objects.append(p)
 for binary in unsigned_objects:
+    result = subprocess.run(['/usr/bin/codesign', '-dv', str(binary)], capture_output=True, text=True)
+    assert result.returncode != 0 and 'not signed at all' in result.stderr, result.stderr
+    subprocess.run(['xcrun', 'strip', '-S', str(binary)], env=env, check=True,
+                   capture_output=True, text=True)
+    # Do not publish local usernames or compilation directories via debug symbols.
+    packed_binary = binary.read_bytes()
+    assert b'/Users/' not in packed_binary and b'/home/' not in packed_binary, 'Local build path remains in binary'
     result = subprocess.run(['/usr/bin/codesign', '-dv', str(binary)], capture_output=True, text=True)
     assert result.returncode != 0 and 'not signed at all' in result.stderr, result.stderr
 binary = executable.read_bytes()
@@ -81,6 +94,7 @@ report = {
     'signature': 'Unsigned: codesign confirms all bundled Mach-O objects are not signed',
     'embeddedProvisioningProfile': False,
     'debugAndSimulationCode': 'Excluded',
+    'debugSymbolsAndLocalBuildPaths': 'Stripped and verified absent',
     'appIntents': sorted(metadata['actions']),
     'zipCRC': 'Valid',
     'bytes': args.output.stat().st_size,
@@ -88,4 +102,5 @@ report = {
 }
 report_path = args.output.with_suffix('.verification.json')
 report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
+staging.cleanup()
 print(json.dumps(report, ensure_ascii=False, indent=2))

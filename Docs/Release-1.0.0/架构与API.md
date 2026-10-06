@@ -73,4 +73,4 @@ URLSession 为 ephemeral，不使用 cookies 或 HTTP 缓存。应用级缓存�
 
 ## 开发注意事项
 
-Release 排除调试测试路由、模拟操作入口、测试图片和凭据。`generate_project.py` 扫描源码生成稳定 ID 工程；`package_unsigned_ipa.py` 验证 iPhoneOS arm64、1.0.0（17）、全部 Mach-O 未签名、Intent 元数据和 ZIP CRC。更改源码后须重新构建并记录校验，不应沿用旧 IPA 的验证结论。
+Release 排除调试测试路由、模拟操作入口、测试图片和凭据。`generate_project.py` 扫描源码生成稳定 ID 工程；`package_unsigned_ipa.py` 验证 iPhoneOS arm64、1.0.0（17）、全部 Mach-O 未签名、Intent 元数据和 ZIP CRC。打包在临时副本上执行，移除调试符号并检查二进制中无本机用户目录，不修改输入 App。更改源码后须重新构建并记录校验，不应沿用旧 IPA 的验证结论。

@@ -234,13 +234,20 @@
     "signature": "Unsigned: codesign confirms all bundled Mach-O objects are not signed",
     "embeddedProvisioningProfile": false,
     "debugAndSimulationCode": "Excluded",
+    "debugSymbolsAndLocalBuildPaths": "Stripped and verified absent",
     "appIntents": [
       "TranslateScreenshotDocumentIntent",
       "TranslateScreenshotIntent",
       "TranslateTextIntent"
     ],
     "zipCRC": "Valid",
-    "bytes": 2411968,
-    "sha256": "836f021f21f713e5b44fd82047c7a778fee5c886512dd203f49ecad35a283b80"
+    "bytes": 2362242,
+    "sha256": "33138a37bbed2e2992a6d2744a33afcaf792d6dda6a9688a1de96dbe66683264"
+  },
+  "packagingPrivacyReview": {
+    "date": "2026-10-06",
+    "debugSymbolPathsRemoved": 36,
+    "applicationCodeChanged": false,
+    "sourceAndImageAudit": "No credentials or real contact data found in public material; synthetic contacts use .test."
   }
 }

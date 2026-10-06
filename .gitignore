@@ -1,0 +1,25 @@
+# Build products and local work
+.build/
+DerivedData/
+work/
+*.xcresult
+*.ipa
+*.dSYM/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Per-user Xcode state
+xcuserdata/
+*.xcuserstate
+
+# Credentials and signing files
+.env
+.env.*
+*.p12
+*.p8
+*.mobileprovision
+
+# Local historical documentation; the public snapshot contains only 1.0.0
+/Docs/*
+!/Docs/Release-1.0.0/

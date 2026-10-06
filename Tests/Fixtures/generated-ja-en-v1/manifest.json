@@ -1,0 +1,368 @@
+{
+  "name": "读屏日英识屏测试集",
+  "version": "1",
+  "created": "2026-10-06",
+  "image_count": 8,
+  "generator": {
+    "mode": "ChatGPT内置image_gen工具",
+    "requested_model": "GPT-image2.5",
+    "actual_model": "工具未披露，不能核验具体版本"
+  },
+  "usage": "虚构的开发测试数据；不能作为真实商品、时刻表、活动、预约或身份信息。",
+  "baseline_policy": "text字段是生成时指定并人工核对关键内容的参考，不可直接作为逐字OCR准确率分母；生成器额外的可见文字与画面按observed_differences核对。",
+  "cases": [
+    {
+      "id": "01-menu",
+      "title": "日英菜单与数量",
+      "filename": "01-menu-ja-en.png",
+      "use_case": "ui-mockup",
+      "layout": "A realistic light-theme Japanese food-ordering mobile screenshot. A hamburger and fries photo occupies the top fifth; below it, a clear product title, two explanatory paragraphs, a price area, drink section with four separate radio options, a quantity stepper, and a bottom add-to-cart button. Item names left and amounts right. Keep every block visible. Natural cream, black, and orange UI, not a translated overlay.",
+      "text": [
+        "MORI KITCHEN",
+        "チーズバーガーセット / Cheeseburger set",
+        "特製ソースにはピクルス、マヨネーズ、ケチャップ、マスタードが含まれます。",
+        "いずれかを抜く場合、ソースなしになります。",
+        "税込価格",
+        "1,100円",
+        "ドリンク / Drinks",
+        "必須選択",
+        "コーラ / Cola",
+        "ジンジャーエール / Ginger ale",
+        "メロンソーダ / Melon soda",
+        "オレンジジュース / Orange juice",
+        "数量",
+        "1",
+        "カートに追加する"
+      ],
+      "difficulty": "standard",
+      "modes": [
+        "quick",
+        "professional",
+        "visual"
+      ],
+      "test_points": [
+        "保留数量1，过滤状态栏数字",
+        "必选与可选不能混淆",
+        "去除任一配料时不加酱汁的完整条件",
+        "四个饮料选项独立、最后按钮完整"
+      ],
+      "scene_intent": "餐饮下单页面，上方显示汉堡及薯条照片，下方选择饮料与数量。",
+      "prompt": "Generate ONE distinct image as an OCR and translation test fixture for an iPhone screen translation app. Portrait, approximately 9:19.5 aspect ratio, high-resolution. Do not put the image inside a phone hardware mockup. No translation overlay, no Chinese text, no watermark, no collage. All requested Japanese and English text must appear accurately and verbatim, using real readable characters; do not invent additional body text. Avoid cutting off the last content block. Provide clear title/body/section hierarchy, preserve paragraphs and list items. Fictional data and reserved .test domains only. For mobile UI cases include a small 9:41 clock and battery 100 in a proper top status bar, and simple navigation icons; status UI must not interfere with main content.\nUse case: ui-mockup\nScene and layout: A realistic light-theme Japanese food-ordering mobile screenshot. A hamburger and fries photo occupies the top fifth; below it, a clear product title, two explanatory paragraphs, a price area, drink section with four separate radio options, a quantity stepper, and a bottom add-to-cart button. Item names left and amounts right. Keep every block visible. Natural cream, black, and orange UI, not a translated overlay.\nText verbatim, in this reading order; render table entries separated by | as distinct aligned cells, not visible pipes:\n\"MORI KITCHEN\"\n\"チーズバーガーセット / Cheeseburger set\"\n\"特製ソースにはピクルス、マヨネーズ、ケチャップ、マスタードが含まれます。\"\n\"いずれかを抜く場合、ソースなしになります。\"\n\"税込価格\"\n\"1,100円\"\n\"ドリンク / Drinks\"\n\"必須選択\"\n\"コーラ / Cola\"\n\"ジンジャーエール / Ginger ale\"\n\"メロンソーダ / Melon soda\"\n\"オレンジジュース / Orange juice\"\n\"数量\"\n\"1\"\n\"カートに追加する\"",
+      "width": 853,
+      "height": 1844,
+      "bytes": 1529616,
+      "sha256": "007db9a69748e870863402739407097a25924d8fe67613a68db33236d60b2384",
+      "manual_review": "已查看原图，核对关键文字、金额、日期、条件及末段；不是逐像素字符转写的黄金答案。",
+      "observed_differences": []
+    },
+    {
+      "id": "02-shopping",
+      "title": "深色商品页与价格关系",
+      "filename": "02-shopping-ja-en-dark.png",
+      "use_case": "ui-mockup",
+      "layout": "A realistic dark-theme mobile shopping page, charcoal background and restrained blue accent. A matte navy phone case product photo at top, title beneath. Current price is large, original price smaller and struck through. Weight and shipping are separate field rows. Coupon condition in a compact note. Quantity 2 and remaining stock 7 must be isolated digits adjacent to their own labels. Checkout button at bottom. Use real Japanese glyphs and keep all content visible.",
+      "text": [
+        "AIR SHELL",
+        "スマートフォン用ケース / Phone case",
+        "約16gの軽量設計。背面を覆わないバンパータイプ。",
+        "販売価格",
+        "2,980円（税込）",
+        "通常価格",
+        "3,980円",
+        "重量",
+        "16g",
+        "送料",
+        "0円",
+        "100円引きクーポン",
+        "2026/10/31まで。ほかのクーポンとは併用できません。",
+        "数量",
+        "2",
+        "在庫",
+        "7",
+        "購入手続きへ / Checkout"
+      ],
+      "difficulty": "standard",
+      "modes": [
+        "quick",
+        "professional",
+        "visual"
+      ],
+      "test_points": [
+        "售价2980与原价3980对应，100日元是优惠金额",
+        "16g不是价格",
+        "数量2与库存7不能删除或互换",
+        "截止日期与优惠券不可叠加"
+      ],
+      "scene_intent": "深色手机保护壳商品页，产品展示不能当成重量测量证据，价格与宣传是页面文字。",
+      "prompt": "Generate ONE distinct image as an OCR and translation test fixture for an iPhone screen translation app. Portrait, approximately 9:19.5 aspect ratio, high-resolution. Do not put the image inside a phone hardware mockup. No translation overlay, no Chinese text, no watermark, no collage. All requested Japanese and English text must appear accurately and verbatim, using real readable characters; do not invent additional body text. Avoid cutting off the last content block. Provide clear title/body/section hierarchy, preserve paragraphs and list items. Fictional data and reserved .test domains only. For mobile UI cases include a small 9:41 clock and battery 100 in a proper top status bar, and simple navigation icons; status UI must not interfere with main content.\nUse case: ui-mockup\nScene and layout: A realistic dark-theme mobile shopping page, charcoal background and restrained blue accent. A matte navy phone case product photo at top, title beneath. Current price is large, original price smaller and struck through. Weight and shipping are separate field rows. Coupon condition in a compact note. Quantity 2 and remaining stock 7 must be isolated digits adjacent to their own labels. Checkout button at bottom. Use real Japanese glyphs and keep all content visible.\nText verbatim, in this reading order; render table entries separated by | as distinct aligned cells, not visible pipes:\n\"AIR SHELL\"\n\"スマートフォン用ケース / Phone case\"\n\"約16gの軽量設計。背面を覆わないバンパータイプ。\"\n\"販売価格\"\n\"2,980円（税込）\"\n\"通常価格\"\n\"3,980円\"\n\"重量\"\n\"16g\"\n\"送料\"\n\"0円\"\n\"100円引きクーポン\"\n\"2026/10/31まで。ほかのクーポンとは併用できません。\"\n\"数量\"\n\"2\"\n\"在庫\"\n\"7\"\n\"購入手続きへ / Checkout\"",
+      "width": 851,
+      "height": 1849,
+      "bytes": 1481608,
+      "sha256": "2a75d49121ce47ba2ab1b50186be34bf78b8dc30b21d77219f21b4e35de769e3",
+      "manual_review": "已查看原图，核对关键文字、金额、日期、条件及末段；不是逐像素字符转写的黄金答案。",
+      "observed_differences": []
+    },
+    {
+      "id": "03-login",
+      "title": "日英登录与条件提示",
+      "filename": "03-login-ja-en.png",
+      "use_case": "ui-mockup",
+      "layout": "A realistic sparse mobile broadband account login page in white and pale grey. Large page title, warning panel, labelled blank account and password fields, a separate minimum-length row with isolated digit 8, then a checkbox and login button. Keep IDs visibly as account labels rather than identity documents. All example domains are reserved .test domains; no real personal data. Calm neutral typography, clear hierarchy, no decorative filler.",
+      "text": [
+        "Hikari Portal",
+        "ログイン / Sign in",
+        "ご利用のアカウントIDを入力してください。",
+        "古いブラウザーではログイン画面を表示できない場合があります。",
+        "会員ID / Account ID",
+        "name@example.test",
+        "パスワード / Password",
+        "最低文字数 / Minimum length",
+        "8",
+        "ログイン状態を保持する / Keep me signed in",
+        "ログイン",
+        "パスワードを忘れた場合 / Forgot password?",
+        "メンテナンス中はご利用いただけません。"
+      ],
+      "difficulty": "standard",
+      "modes": [
+        "quick",
+        "professional",
+        "visual"
+      ],
+      "test_points": [
+        "ID是登录标识，不是证件号",
+        "可能无法显示不能改成一定无法显示",
+        "最低长度8不能当噪声删除",
+        "维护期间不可使用的否定限制"
+      ],
+      "scene_intent": "宽带账户登录页面，邮箱示例不是用户真实身份。",
+      "prompt": "Generate ONE distinct image as an OCR and translation test fixture for an iPhone screen translation app. Portrait, approximately 9:19.5 aspect ratio, high-resolution. Do not put the image inside a phone hardware mockup. No translation overlay, no Chinese text, no watermark, no collage. All requested Japanese and English text must appear accurately and verbatim, using real readable characters; do not invent additional body text. Avoid cutting off the last content block. Provide clear title/body/section hierarchy, preserve paragraphs and list items. Fictional data and reserved .test domains only. For mobile UI cases include a small 9:41 clock and battery 100 in a proper top status bar, and simple navigation icons; status UI must not interfere with main content.\nUse case: ui-mockup\nScene and layout: A realistic sparse mobile broadband account login page in white and pale grey. Large page title, warning panel, labelled blank account and password fields, a separate minimum-length row with isolated digit 8, then a checkbox and login button. Keep IDs visibly as account labels rather than identity documents. All example domains are reserved .test domains; no real personal data. Calm neutral typography, clear hierarchy, no decorative filler.\nText verbatim, in this reading order; render table entries separated by | as distinct aligned cells, not visible pipes:\n\"Hikari Portal\"\n\"ログイン / Sign in\"\n\"ご利用のアカウントIDを入力してください。\"\n\"古いブラウザーではログイン画面を表示できない場合があります。\"\n\"会員ID / Account ID\"\n\"name@example.test\"\n\"パスワード / Password\"\n\"最低文字数 / Minimum length\"\n\"8\"\n\"ログイン状態を保持する / Keep me signed in\"\n\"ログイン\"\n\"パスワードを忘れた場合 / Forgot password?\"\n\"メンテナンス中はご利用いただけません。\"",
+      "width": 853,
+      "height": 1844,
+      "bytes": 1034226,
+      "sha256": "c99a5588917cce459018e0f7235495a6f929667f327c5104e009cbbe3691de7f",
+      "manual_review": "已查看原图，核对关键文字、金额、日期、条件及末段；不是逐像素字符转写的黄金答案。",
+      "observed_differences": []
+    },
+    {
+      "id": "04-transit",
+      "title": "交通通知、表格与日期",
+      "filename": "04-transit-ja-en.png",
+      "use_case": "ui-mockup",
+      "layout": "A realistic mobile transit service notice, white background with navy headers and a small schematic route graphic. Two language title followed by a prominent service-interruption panel, then a clean three-column departure table with three rows. Fare rows and a warning paragraph below, bottom detail link visible. Keep columns lined up, no timetable omissions. This is a fictional Aoba Line, not any real rail operator.",
+      "text": [
+        "青葉線 / Aoba Line",
+        "運行のお知らせ / Service notice",
+        "2026/10/06",
+        "10:00〜12:30",
+        "中央駅〜川辺駅は運転を見合わせます。",
+        "振替バスをご利用ください。",
+        "発車 / Departure",
+        "ホーム / Platform",
+        "行先 / Destination",
+        "09:20 | 1 | 緑川 / Midorikawa",
+        "13:10 | 2 | 森町 / Morimachi",
+        "14:05 | 1 | 緑川 / Midorikawa",
+        "大人",
+        "380円",
+        "小児",
+        "190円",
+        "この切符では特急にご乗車いただけません。",
+        "詳細を見る / View details"
+      ],
+      "difficulty": "layout-hard",
+      "modes": [
+        "professional",
+        "visual"
+      ],
+      "test_points": [
+        "时间10:00至12:30及日期属于停运通知",
+        "每行发车、站台和目的地对应",
+        "站台1/2与票价380/190不能互换",
+        "此票不能搭乘特急的否定"
+      ],
+      "scene_intent": "虚构线路的停运通知和发车表，不能被当成真实出行信息。",
+      "prompt": "Generate ONE distinct image as an OCR and translation test fixture for an iPhone screen translation app. Portrait, approximately 9:19.5 aspect ratio, high-resolution. Do not put the image inside a phone hardware mockup. No translation overlay, no Chinese text, no watermark, no collage. All requested Japanese and English text must appear accurately and verbatim, using real readable characters; do not invent additional body text. Avoid cutting off the last content block. Provide clear title/body/section hierarchy, preserve paragraphs and list items. Fictional data and reserved .test domains only. For mobile UI cases include a small 9:41 clock and battery 100 in a proper top status bar, and simple navigation icons; status UI must not interfere with main content.\nUse case: ui-mockup\nScene and layout: A realistic mobile transit service notice, white background with navy headers and a small schematic route graphic. Two language title followed by a prominent service-interruption panel, then a clean three-column departure table with three rows. Fare rows and a warning paragraph below, bottom detail link visible. Keep columns lined up, no timetable omissions. This is a fictional Aoba Line, not any real rail operator.\nText verbatim, in this reading order; render table entries separated by | as distinct aligned cells, not visible pipes:\n\"青葉線 / Aoba Line\"\n\"運行のお知らせ / Service notice\"\n\"2026/10/06\"\n\"10:00〜12:30\"\n\"中央駅〜川辺駅は運転を見合わせます。\"\n\"振替バスをご利用ください。\"\n\"発車 / Departure\"\n\"ホーム / Platform\"\n\"行先 / Destination\"\n\"09:20 | 1 | 緑川 / Midorikawa\"\n\"13:10 | 2 | 森町 / Morimachi\"\n\"14:05 | 1 | 緑川 / Midorikawa\"\n\"大人\"\n\"380円\"\n\"小児\"\n\"190円\"\n\"この切符では特急にご乗車いただけません。\"\n\"詳細を見る / View details\"",
+      "width": 853,
+      "height": 1844,
+      "bytes": 1237008,
+      "sha256": "c311c5b868e14f4030dd91c20659990b743e27c7ca64e20092a4c8faed4582d5",
+      "manual_review": "已查看原图，核对关键文字、金额、日期、条件及末段；不是逐像素字符转写的黄金答案。",
+      "observed_differences": [
+        "线路示意图额外显示青葉駅与緑川駅；应按真实画面保留有意义的站名，不计为App幻觉。"
+      ]
+    },
+    {
+      "id": "05-email",
+      "title": "英语长邮件与中间段落",
+      "filename": "05-email-en-ja.png",
+      "use_case": "ui-mockup",
+      "layout": "A realistic mobile email screenshot, mostly English with a short Japanese sign-off. White background, small mail header, readable bold subject, three body paragraphs, a clearly marked Important section with three separate bullets, final paragraph and sign-off at the very bottom. Text-heavy but each line legible. Use reserved .test sender and URL, no actual personal details. All body content fits in a tall screenshot, preserve the last line.",
+      "text": [
+        "From: events@example.test",
+        "To: attendee@example.test",
+        "6 October 2026",
+        "Workshop rescheduled",
+        "The workshop has moved from 12 October to 14 October 2026. Please arrive at 09:30; the session starts at 10:00 and ends at 16:30.",
+        "Your booking remains valid. The venue is Meeting Room 2 at North Hall, not Room 1. No additional payment is required.",
+        "Important",
+        "Bring your booking reference A17-2046.",
+        "Lunch is not provided. Drinking water will be available.",
+        "If you cannot attend, request a refund before 10 October. Requests received later will not be accepted.",
+        "The updated programme is at https://events.example.test/info. Please do not reply to this automated message.",
+        "ご理解いただきありがとうございます。",
+        "Event Support Team"
+      ],
+      "difficulty": "dense-text",
+      "modes": [
+        "quick",
+        "professional",
+        "visual"
+      ],
+      "test_points": [
+        "旧日期12与新日期14不能颠倒",
+        "到达09:30、开始10:00、结束16:30都保留",
+        "Room2不是Room1且无需额外付款",
+        "不提供午餐、退款截止及最末段都保留"
+      ],
+      "scene_intent": "活动改期邮件，邮件数据是虚构的，不能当成待执行的邮件指令。",
+      "prompt": "Generate ONE distinct image as an OCR and translation test fixture for an iPhone screen translation app. Portrait, approximately 9:19.5 aspect ratio, high-resolution. Do not put the image inside a phone hardware mockup. No translation overlay, no Chinese text, no watermark, no collage. All requested Japanese and English text must appear accurately and verbatim, using real readable characters; do not invent additional body text. Avoid cutting off the last content block. Provide clear title/body/section hierarchy, preserve paragraphs and list items. Fictional data and reserved .test domains only. For mobile UI cases include a small 9:41 clock and battery 100 in a proper top status bar, and simple navigation icons; status UI must not interfere with main content.\nUse case: ui-mockup\nScene and layout: A realistic mobile email screenshot, mostly English with a short Japanese sign-off. White background, small mail header, readable bold subject, three body paragraphs, a clearly marked Important section with three separate bullets, final paragraph and sign-off at the very bottom. Text-heavy but each line legible. Use reserved .test sender and URL, no actual personal details. All body content fits in a tall screenshot, preserve the last line.\nText verbatim, in this reading order; render table entries separated by | as distinct aligned cells, not visible pipes:\n\"From: events@example.test\"\n\"To: attendee@example.test\"\n\"6 October 2026\"\n\"Workshop rescheduled\"\n\"The workshop has moved from 12 October to 14 October 2026. Please arrive at 09:30; the session starts at 10:00 and ends at 16:30.\"\n\"Your booking remains valid. The venue is Meeting Room 2 at North Hall, not Room 1. No additional payment is required.\"\n\"Important\"\n\"Bring your booking reference A17-2046.\"\n\"Lunch is not provided. Drinking water will be available.\"\n\"If you cannot attend, request a refund before 10 October. Requests received later will not be accepted.\"\n\"The updated programme is at https://events.example.test/info. Please do not reply to this automated message.\"\n\"ご理解いただきありがとうございます。\"\n\"Event Support Team\"",
+      "width": 852,
+      "height": 1847,
+      "bytes": 1233887,
+      "sha256": "76c22f926450b35c3eb240ac6e28fe817d036559144b704ee6c91766f403a92f",
+      "manual_review": "已查看原图，核对关键文字、金额、日期、条件及末段；不是逐像素字符转写的黄金答案。",
+      "observed_differences": []
+    },
+    {
+      "id": "06-cafe-photo",
+      "title": "真实感咖啡店照片与手写菜单",
+      "filename": "06-cafe-photo-ja-en.png",
+      "use_case": "photorealistic-natural",
+      "layout": "A photorealistic portrait photo of a small Japanese cafe entrance in soft daylight. A wood-framed dark chalkboard dominates the foreground at a mild 10-degree perspective angle. Two empty chairs, potted plants and the partly open cafe door form the visible surrounding scene. Chalkboard lettering is hand-lettered but readable, with authentic Japanese glyphs; subtle worn chalk texture and a little glare, no severe blur. No people or extra illegible signage. Prices aligned with their own items.",
+      "text": [
+        "本日のおすすめ",
+        "TODAY'S SPECIAL",
+        "抹茶ラテ / Matcha latte",
+        "620円",
+        "レモネード / Lemonade",
+        "550円",
+        "プリン / Custard pudding",
+        "480円",
+        "すべて税込",
+        "売り切れ次第終了"
+      ],
+      "difficulty": "photo-hard",
+      "modes": [
+        "professional",
+        "visual"
+      ],
+      "test_points": [
+        "斜拍与手写字的局部识别",
+        "三项商品价格不能错配",
+        "所有价格含税、售完即止",
+        "识图描述门口、黑板、椅子与盆栽，不编造人物或商家真实性"
+      ],
+      "scene_intent": "咖啡店门口的当日推荐黑板，木框、座椅与盆栽，商品名和价格主要来自文字。",
+      "prompt": "Generate ONE distinct image as an OCR and translation test fixture for an iPhone screen translation app. Portrait, approximately 9:19.5 aspect ratio, high-resolution. Do not put the image inside a phone hardware mockup. No translation overlay, no Chinese text, no watermark, no collage. All requested Japanese and English text must appear accurately and verbatim, using real readable characters; do not invent additional body text. Avoid cutting off the last content block. Provide clear title/body/section hierarchy, preserve paragraphs and list items. Fictional data and reserved .test domains only. For mobile UI cases include a small 9:41 clock and battery 100 in a proper top status bar, and simple navigation icons; status UI must not interfere with main content.\nUse case: photorealistic-natural\nScene and layout: A photorealistic portrait photo of a small Japanese cafe entrance in soft daylight. A wood-framed dark chalkboard dominates the foreground at a mild 10-degree perspective angle. Two empty chairs, potted plants and the partly open cafe door form the visible surrounding scene. Chalkboard lettering is hand-lettered but readable, with authentic Japanese glyphs; subtle worn chalk texture and a little glare, no severe blur. No people or extra illegible signage. Prices aligned with their own items.\nText verbatim, in this reading order; render table entries separated by | as distinct aligned cells, not visible pipes:\n\"本日のおすすめ\"\n\"TODAY'S SPECIAL\"\n\"抹茶ラテ / Matcha latte\"\n\"620円\"\n\"レモネード / Lemonade\"\n\"550円\"\n\"プリン / Custard pudding\"\n\"480円\"\n\"すべて税込\"\n\"売り切れ次第終了\"",
+      "width": 853,
+      "height": 1844,
+      "bytes": 2691484,
+      "sha256": "71491773ac9a84830a799b78ab9b920104590300e65ef7f8dbed347b2ed6d167",
+      "manual_review": "已查看原图，核对关键文字、金额、日期、条件及末段；不是逐像素字符转写的黄金答案。",
+      "observed_differences": [
+        "菜单包含三种食物饮品的粉笔插画；背景还有室内吊灯和展示柜，实际看图描述可提及。"
+      ]
+    },
+    {
+      "id": "07-poster",
+      "title": "日英音乐海报与竖排字",
+      "filename": "07-music-poster-ja-en.png",
+      "use_case": "ads-marketing",
+      "layout": "A finished portrait music event poster for a fictional festival, visually different from the UI screenshots. Indigo and violet night-stage illustration with two anonymous performer silhouettes and warm spotlights. Bold Japanese and English event title. Date and two separately labelled opening/start times prominently placed. Advance and door prices in separate labelled boxes. A short Japanese vertical text strip on the right reads the exact rain policy, and the bottom policy text remains readable. No real artists, venue logos, people identities or QR codes.",
+      "text": [
+        "月灯り音楽祭",
+        "MOONLIGHT MUSIC NIGHT",
+        "2026/11/03",
+        "OPEN 18:30",
+        "START 19:00",
+        "前売り 2,400円",
+        "当日 2,900円",
+        "雨天決行",
+        "小学生以下は保護者同伴。",
+        "飲食物の持ち込みは禁止です。",
+        "tickets.example.test"
+      ],
+      "difficulty": "stylized-hard",
+      "modes": [
+        "professional",
+        "visual"
+      ],
+      "test_points": [
+        "竖排雨天照常举行",
+        "入场18:30与开始19:00不能混淆",
+        "预售2400与当天2900分开",
+        "监护人陪同与禁止自带饮食的限制不能省略",
+        "人物仅能描述剪影，不能猜身份"
+      ],
+      "scene_intent": "虚构音乐活动海报，舞台与表演者剪影，不能把宣传当成已证实活动。",
+      "prompt": "Generate ONE distinct image as an OCR and translation test fixture for an iPhone screen translation app. Portrait, approximately 9:19.5 aspect ratio, high-resolution. Do not put the image inside a phone hardware mockup. No translation overlay, no Chinese text, no watermark, no collage. All requested Japanese and English text must appear accurately and verbatim, using real readable characters; do not invent additional body text. Avoid cutting off the last content block. Provide clear title/body/section hierarchy, preserve paragraphs and list items. Fictional data and reserved .test domains only. For mobile UI cases include a small 9:41 clock and battery 100 in a proper top status bar, and simple navigation icons; status UI must not interfere with main content.\nUse case: ads-marketing\nScene and layout: A finished portrait music event poster for a fictional festival, visually different from the UI screenshots. Indigo and violet night-stage illustration with two anonymous performer silhouettes and warm spotlights. Bold Japanese and English event title. Date and two separately labelled opening/start times prominently placed. Advance and door prices in separate labelled boxes. A short Japanese vertical text strip on the right reads the exact rain policy, and the bottom policy text remains readable. No real artists, venue logos, people identities or QR codes.\nText verbatim, in this reading order; render table entries separated by | as distinct aligned cells, not visible pipes:\n\"月灯り音楽祭\"\n\"MOONLIGHT MUSIC NIGHT\"\n\"2026/11/03\"\n\"OPEN 18:30\"\n\"START 19:00\"\n\"前売り 2,400円\"\n\"当日 2,900円\"\n\"雨天決行\"\n\"小学生以下は保護者同伴。\"\n\"飲食物の持ち込みは禁止です。\"\n\"tickets.example.test\"",
+      "width": 850,
+      "height": 1850,
+      "bytes": 2135041,
+      "sha256": "8483f20b0a7c7c26b1d6609b68b0bc79d52f67c0d6958cb44b1f7c5707830468",
+      "manual_review": "已查看原图，核对关键文字、金额、日期、条件及末段；不是逐像素字符转写的黄金答案。",
+      "observed_differences": [
+        "画面额外包含月亮、观众、树木、湖面及远处帐篷；可见场景应以原图为准。"
+      ]
+    },
+    {
+      "id": "08-booking",
+      "title": "英文预约与日语限制、多列金额",
+      "filename": "08-booking-en-ja.png",
+      "use_case": "ui-mockup",
+      "layout": "A realistic mobile booking confirmation page, white background and restrained burgundy accent, prominent confirmation title, compact booking details field rows, a clean table with separate Item / Qty / Amount columns, total row, then a Japanese policy note with English translation and a final view-ticket button. The table must contain two adult tickets and one child ticket; amounts are row totals, not unit prices. Keep every number aligned with its role, and show the entire footer. No real venue or payment account details.",
+      "text": [
+        "Booking confirmed / 予約完了",
+        "Reference",
+        "A17-2046",
+        "Date",
+        "2026/11/03",
+        "Entry time",
+        "18:30",
+        "Guests",
+        "3",
+        "Item | Qty | Amount",
+        "Adult ticket | 2 | ¥4,800",
+        "Child ticket | 1 | ¥800",
+        "Total paid",
+        "¥5,600",
+        "Tax included",
+        "未使用のチケットに限り、開催72時間前まで払い戻し可能です。",
+        "Refunds are available only for unused tickets until 72 hours before the event.",
+        "再入場はできません。 / Re-entry is not permitted.",
+        "View tickets / チケットを表示"
+      ],
+      "difficulty": "layout-hard",
+      "modes": [
+        "professional",
+        "visual"
+      ],
+      "test_points": [
+        "数量2与1属于不同票种，3是总人数",
+        "4800和800是行合计，5600是总付款",
+        "72小时与仅未使用门票的条件都保留",
+        "禁止再次入场、最末按钮完整",
+        "同一日英政策可去重，不同票种和金额不可去重"
+      ],
+      "scene_intent": "虚构预约确认页，含票种、数量、金额与退款条件，不能推断实际付款或用户行程。",
+      "prompt": "Generate ONE distinct image as an OCR and translation test fixture for an iPhone screen translation app. Portrait, approximately 9:19.5 aspect ratio, high-resolution. Do not put the image inside a phone hardware mockup. No translation overlay, no Chinese text, no watermark, no collage. All requested Japanese and English text must appear accurately and verbatim, using real readable characters; do not invent additional body text. Avoid cutting off the last content block. Provide clear title/body/section hierarchy, preserve paragraphs and list items. Fictional data and reserved .test domains only. For mobile UI cases include a small 9:41 clock and battery 100 in a proper top status bar, and simple navigation icons; status UI must not interfere with main content.\nUse case: ui-mockup\nScene and layout: A realistic mobile booking confirmation page, white background and restrained burgundy accent, prominent confirmation title, compact booking details field rows, a clean table with separate Item / Qty / Amount columns, total row, then a Japanese policy note with English translation and a final view-ticket button. The table must contain two adult tickets and one child ticket; amounts are row totals, not unit prices. Keep every number aligned with its role, and show the entire footer. No real venue or payment account details.\nText verbatim, in this reading order; render table entries separated by | as distinct aligned cells, not visible pipes:\n\"Booking confirmed / 予約完了\"\n\"Reference\"\n\"A17-2046\"\n\"Date\"\n\"2026/11/03\"\n\"Entry time\"\n\"18:30\"\n\"Guests\"\n\"3\"\n\"Item | Qty | Amount\"\n\"Adult ticket | 2 | ¥4,800\"\n\"Child ticket | 1 | ¥800\"\n\"Total paid\"\n\"¥5,600\"\n\"Tax included\"\n\"未使用のチケットに限り、開催72時間前まで払い戻し可能です。\"\n\"Refunds are available only for unused tickets until 72 hours before the event.\"\n\"再入場はできません。 / Re-entry is not permitted.\"\n\"View tickets / チケットを表示\"",
+      "width": 853,
+      "height": 1844,
+      "bytes": 1026154,
+      "sha256": "908ec287d1d1b4503406acf6f72cccf6f5bb17423cb1f5b7de8e71dec218e15c",
+      "manual_review": "已查看原图，核对关键文字、金额、日期、条件及末段；不是逐像素字符转写的黄金答案。",
+      "observed_differences": []
+    }
+  ]
+}

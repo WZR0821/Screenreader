@@ -1,0 +1,1429 @@
+{
+  "version": "1.1.0",
+  "build": "18",
+  "date": "2026-10-07",
+  "timezone": "Asia/Tokyo",
+  "core": {
+    "total": 134,
+    "failed": 0,
+    "run": "core-verified.log"
+  },
+  "iosLatestPerCase": {
+    "ScreenTranslateTests": {
+      "total": 197,
+      "passed": 197,
+      "failed": 0
+    },
+    "ScreenTranslateUITests": {
+      "total": 31,
+      "passed": 31,
+      "failed": 0
+    }
+  },
+  "package": {
+    "file": "Screenreader-iOS-v1.1.0-build18-unsigned.ipa",
+    "version": "1.1.0",
+    "build": "18",
+    "bundleIdentifier": "com.raydon.ScreenTranslate",
+    "bundleName": "Screenreader",
+    "cameraUsageDescription": "拍摄需要翻译的文字或图片；确认照片后立即开始翻译。",
+    "internalPromptPreview": "Removed",
+    "localizedDisplayNames": {
+      "en": "Screenreader",
+      "zh-Hans": "读屏"
+    },
+    "minimumOSVersion": "18.0",
+    "platform": "iphoneos",
+    "architecture": "arm64",
+    "signature": "Unsigned: codesign confirms all bundled Mach-O objects are not signed",
+    "embeddedProvisioningProfile": false,
+    "debugAndSimulationCode": "Excluded",
+    "debugSymbolsAndLocalBuildPaths": "Stripped and verified absent",
+    "appIntents": [
+      "TranslateScreenshotDocumentIntent",
+      "TranslateScreenshotIntent",
+      "TranslateTextIntent"
+    ],
+    "zipCRC": "Valid",
+    "bytes": 2502933,
+    "sha256": "3d2b7a9d51eefee15bde468579c06937114ab6df5ac112dab3112a900ecec6d1"
+  },
+  "runs": [
+    "regression.log",
+    "verification.log"
+  ],
+  "cases": {
+    "ScreenTranslateTests/APIClientTests/testCancelledTaskDoesNotReturnTranslation": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.01,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/APIClientTests/testChatRequestUsesAuthAndSeparatesPromptFromInput": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.022,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/APIClientTests/testClaudeRequestUsesNativeHeadersAndSystemPrompt": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.009,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/APIClientTests/testHTTPFailuresMappedAndNeverRetriedAutomatically": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.011,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/APIClientTests/testMissingCredentialsNeverStartNetworkRequest": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/APIClientTests/testModelListSortedAndDeduplicated": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/APIClientTests/testNetworkTimeoutAndOfflineErrorsMapped": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.01,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/APIClientTests/testResponsesRequestDisablesServerStorage": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.005,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testBuiltInProvidersHaveSelectableModelsAndCorrectEndpoints": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testChatParserHandlesMultipartContent": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testChatParserPreservesQuotesAndWhitespaceInsideTranslation": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testClaudeParserSkipsThinking": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testCustomPromptExpandsVariablesWithoutInterpretingGlossary": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testEmptyInputRejected": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.001,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testEmptyRefusalAndMalformedResponsesRejected": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testEndpointsAcceptBaseAndFullRoutes": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testGlossaryLimit": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testGlossaryRecognitionWordsAreDeduplicatedAndBounded": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testInsecureAndAmbiguousURLsRejected": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testLanguageOptionsAndEveryDirectionHaveExplicitPrompt": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testLanguageSwapAndAutomaticSourceBehavior": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testLayoutPreservesParagraphGapsAndSameRowOrder": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.091,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testLayoutRejoinsEnglishWrappedLines": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testLayoutRejoinsJapaneseWithoutSpuriousSpaces": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testLegacyConfigurationMigrationKeepsAPIAndPreferences": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.029,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testNumberedAndBulletedOCRLinesStaySeparate": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testOldSettingsDefaultToEmptyCustomPrompt": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testPromptContainsTargetAndTreatsInputAsData": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testProviderConfigurationsRemainSeparate": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testResponsesParserSkipsReasoningAndCollectsAllMessages": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testResponsesRejectsIncompleteTranslation": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testSettingsRoundTrip": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testTextLimitIncludesUnicodeCharacters": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.006,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testTextNormalizationKeepsParagraphsAndUnicode": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testTruncatedChatAndClaudeNeverReturnPartialSuccess": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/CoreTests/testUserFacingErrorsDoNotExposeSecrets": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.008,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/GeneratedFixtureTests/testGeneratedFixturesRetainCriticalFactsAndLastContentWithRealVision": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 71.089,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/GeneratedFixtureTests/testGeneratedMenuAndNoticeHaveReadableHeadingAndListHierarchy": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 24.687,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/GeneratedFixtureTests/testGeneratedQuantityAndStockAreDifferentFields": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 7.925,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/GeneratedFixtureTests/testGeneratedTicketAndTransitTablesKeepWholeRows": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 16.407,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/GeneratedFixtureTests/testLoginMenuIconDoesNotBecomeTranslatedContent": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 7.035,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/GeneratedFixtureTests/testQuickModeRecoversOneMissingDarkNumericFieldWithoutGeneralReviews": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 6.318,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/GeneratedFixtureTests/testTableReaderEscapesCellsAndKeepsColumnsAndFinalLineAtLargeSize": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 2.081,
+      "run": "verification.log"
+    },
+    "ScreenTranslateTests/ImageRequestTests/testAllThreeProtocolsSendJPEGInTheirDocumentedShapes": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.027,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ImageRequestTests/testKnownTextOnlyModelRejectsImageBeforeUpload": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ImageRequestTests/testSpeedPreferenceIsProviderSpecificAndCanBeDisabled": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.016,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ImageRequestTests/testTextRequestNeverSendsImageEvenWhenSavedModeIsVisual": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.005,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/JapaneseIntegrationTests/testJapaneseAndEnglishMenuOCRKeepsPricesConditionsAndLastButton": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 8.589,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/JapaneseIntegrationTests/testJapaneseKanaLabelsAreNotMisidentifiedAsUnrelatedLanguages": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/JapaneseIntegrationTests/testJapaneseReaderRendersColumnsListsAndFullEndingWithoutOverflow": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.79,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/JapaneseIntegrationTests/testShortBrandsDatesAndCountsDoNotInventExtraLanguages": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/JapaneseIntegrationTests/testTallMenuHasTwoPixelOnlyDetailsAndRetainsBottomText": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 9.224,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/JapaneseIntegrationTests/testVisualMenuIncludesReferenceAndAllImagesInOneAPICall": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 5.013,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/JapaneseTests/testDateReviewRequiresExplicitContextTwoMatchingReadingsAndValidCalendarDate": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.007,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/JapaneseTests/testFieldColumnsOnlySplitUnambiguousPricesAndLabels": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/JapaneseTests/testInvalidPreferencesAlsoRejectImageRequests": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/JapaneseTests/testJapaneseQuickAndProfessionalRequireAccuracyWithoutExpanding": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/JapaneseTests/testJapaneseTaxAnnotatedPriceStaysWithItsItem": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/JapaneseTests/testVisualLayoutHandlesJapaneseAndEnglishAndKeepsUnexpectedMarkupAsText": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/JapaneseTests/testVisualLayoutPreservesJapaneseMenuOptionsAmountsAndCautions": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/JapaneseTests/testVisualPromptHasOneTaskAndUsesSelectedLanguageForSectionLabels": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.009,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/LayoutAndCacheTests/testCacheByteLimitAndEmptyValues": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.005,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/LayoutAndCacheTests/testCacheExpiresEvictsLeastRecentlyUsedAndClears": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/LayoutAndCacheTests/testCacheIdentityIncludesTranslationInputsAndExcludesAppearance": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.014,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/LayoutAndCacheTests/testDigitsAtEdgesDatesAndPercentagesSurvivePhoneShape": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/LayoutAndCacheTests/testEquidistantNumberIsKeptRatherThanAssignedToWrongQuantity": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/LayoutAndCacheTests/testGeometryKeepsMultipleHeadingsListsAndParagraphs": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/LayoutAndCacheTests/testLargeNoticeProseAndEventTimesAreNotTurnedIntoHeadings": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.005,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/LayoutAndCacheTests/testNearbyQuantityLabelsEachOwnTheirClosestNumber": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/LayoutAndCacheTests/testNegativeNumbersKeepTheirSignWhileDateHyphensRemainSeparators": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.007,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/LayoutAndCacheTests/testPlainTextListsDoNotLoseNumbering": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/LayoutAndCacheTests/testProfessionalOutputUsesSourceKindsEvenIfModelInventsThem": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/LayoutAndCacheTests/testProfessionalRejectsMissingChangedAndSubstringNumbers": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.005,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/LayoutAndCacheTests/testRefinementCanCorrectTextButCannotReplaceQuantityOrPrice": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/LayoutAndCacheTests/testRequiredChoiceHeadingAndFirstOptionKeepListDespiteGlyphHeightDifference": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ModeIntegrationTests/testShortcutOverrideUsesAPIAndDoesNotChangeDefaultOrEngine": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.04,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ModeIntegrationTests/testSystemChoiceDoesNotRequireAPIKeyOrSendNetworkRequest": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.012,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ModeIntegrationTests/testVisualModeCannotTranslateTextWithoutImage": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.007,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ModeTests/testAPIModesRoundTripIndependently": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.008,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ModeTests/testLegacyModeMigrationPreservesVisualAndSpeedPreference": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ModeTests/testProfessionalRejectsMissingDuplicateEmptyAndInventedBlocks": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ModeTests/testProfessionalRestoresOrderAndKeepsPriceAndListLines": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ModeTests/testProfessionalUsesOneRequestAndRestoresEveryProtocol": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.012,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ModeTests/testQuickPromptIsShortAndVisualSeparatesTwoMeanings": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/OCRIntegrationTests/testBlankImageShowsNoTextError": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 1.113,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/OCRIntegrationTests/testCompleteImageToAPIToTranslationPipeline": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 3.216,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/OCRIntegrationTests/testExplicitSourceLanguagesConfigureRealOCR": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 8.304,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/OCRIntegrationTests/testInvalidImageAndOversizedDataRejected": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/OCRIntegrationTests/testJapaneseAndEnglishOCRFromRealRenderedImage": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 3.369,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/OCRIntegrationTests/testLongScreenshotRetainsSmallTextAndAvoidsTileDuplicates": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 9.432,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/OCRIntegrationTests/testMixedLanguageDetection": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.021,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/OptimizationIntegrationTests/testFailedOrIncompleteRequestsAreNotCached": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.007,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/OptimizationIntegrationTests/testRealSmallTextInvokesBoundedLocalReviewAndQuickModeSkipsIt": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 9.764,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/OptimizationIntegrationTests/testRealVisionKeepsInformationHeadingAndSentenceParagraphs": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 2.412,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/OptimizationIntegrationTests/testRepeatedAPITextSkipsNetworkAndChangedPromptOrDisabledCacheDoesNot": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.01,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/OptimizationIntegrationTests/testTypedDocumentRendersEveryHeadingListAndPriceWithoutMarkupInjection": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.245,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/PersistenceIntegrationTests/testAppIntentsDoNotOpenAppAndRequireAuthentication": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/PersistenceIntegrationTests/testCancellingUIWorkDoesNotRestoreOldResult": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.122,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/PersistenceIntegrationTests/testEditingSourceInvalidatesOldTranslationAndError": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.127,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/PersistenceIntegrationTests/testImageTranslationUpdatesEditorWithoutClearingNewResult": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 3.614,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/PersistenceIntegrationTests/testIntentWorkerReturnsFullTranslationAndSavesSameResult": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 3.397,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/PersistenceIntegrationTests/testKeysRemainIsolatedAndCanBeUpdatedAndRemoved": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.019,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/PersistenceIntegrationTests/testLanguageUpdatesPersistWithoutReplacingAPIKeyOrConfiguration": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.02,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/PersistenceIntegrationTests/testResultCardRendersSuccessLongTextAndError": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.243,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/PersistenceIntegrationTests/testSettingsAndRecentResultPersistAndPrivacyToggleDeletesFile": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.021,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/PreferencesIntegrationTests/testCorruptHistoryIsNotSilentlyOverwritten": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.009,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/PreferencesIntegrationTests/testFullDocumentUsesReaderAppearanceAndEscapesOriginal": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.006,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/PreferencesIntegrationTests/testLegacyResultMigratesThenKeepsMultipleResultsAcrossStores": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.012,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/PreferencesIntegrationTests/testRetentionDeduplicationDeletionAndDisableArePersistent": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.083,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/PreferencesIntegrationTests/testSwitchingServiceRestrictsModesWithoutLosingCredentialsOrColors": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.016,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/PreferencesTests/testAppearanceAndReaderSurviveReloadAndNormalizeInvalidValues": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/PreferencesTests/testEveryPaletteAndExtremeCustomColorHasReadableContrast": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/PreferencesTests/testMigrationPreservesExistingAPIProfessionalAndVisualUse": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/PreferencesTests/testSystemServiceNormalizesUnavailableModesAndAsking": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ReadabilityIntegrationTests/testBlankImageInTextModeNeverUploadsImageAsFallback": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 1.796,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ReadabilityIntegrationTests/testCompleteScreenshotTravelsThroughOCRRequestAndFullDocument": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 10.602,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ReadabilityIntegrationTests/testDocumentEscapesModelMarkupAndHasNoExternalResources": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ReadabilityIntegrationTests/testFullDocumentRoundTripKeepsEveryParagraphAndMeaningfulNumbers": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.02,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ReadabilityIntegrationTests/testFullReaderHasOnlyReadingContentAndCollapsibleOriginal": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ReadabilityIntegrationTests/testImagePreparationProducesBoundedJPEGWithoutMetadata": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.425,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ReadabilityIntegrationTests/testQuickOCRStillReadsMenuPricesAndLastDrink": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 7.668,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ReadabilityIntegrationTests/testRealVisionFiltersStatusBarAndKeepsCompleteRawText": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 8.18,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ReadabilityIntegrationTests/testUserMenuScreenshotPreservesDescriptionPricesQuantityAndLastOption": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 9.901,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ReadabilityIntegrationTests/testVisualModeWorksWithoutAnyOCRTextAndOnlyMakesOneRequest": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 2.436,
+      "run": "verification.log"
+    },
+    "ScreenTranslateTests/ReadabilityIntegrationTests/testVisualSummaryDoesNotOfferPlaceholderAsOriginalText": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ReadabilityTests/testDocumentTimeAtTopIsNotMistakenForStatusBarWithoutPhoneEvidence": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ReadabilityTests/testFormattingRemovesExcessBlankSpaceWithoutLosingMeaningfulSymbols": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.001,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ReadabilityTests/testFormGroupsValuesWithLabelsWithoutDroppingStandaloneQuantity": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ReadabilityTests/testImagePromptSeparatesMeaningFromTranslationAndForbidsGuessing": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ReadabilityTests/testJapaneseMiddleDotIsKeptAsBulletButNotStandaloneToolbarEllipsis": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ReadabilityTests/testJapaneseQuantityControlDoesNotRemoveMeaningfulTenOrDigits": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ReadabilityTests/testLargerWrappedTitleStaysTogetherAndDescriptionStartsNewParagraph": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ReadabilityTests/testLowConfidenceEdgeNumbersAreKeptWithoutEvidenceTheyAreChrome": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ReadabilityTests/testNearbyFragmentsJoinButSeparateColumnsRemainSeparate": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ReadabilityTests/testOldSettingsMigrateToTextOnlyAndExistingKeysRemainIntact": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ReadabilityTests/testPreviewIsBoundedAndNeverMutatesOriginal": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.013,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ReadabilityTests/testScreenshotNoiseIsRemovedButBodyNumbersNamesAndPunctuationSurvive": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ReadabilityTests/testStatusClockWithOCRSuffixDoesNotConsumeTheTranslationPreview": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/RefinementReaderTests/testEnglishReaderPreservesHierarchySymbolsPricesAndFinalLineAtLargeSize": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.69,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/RefinementTests/testChineseInterfaceLabelsDoNotLeakIntoEnglishModelInstructions": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/RefinementTests/testDecimalsDatesAndBareNumbersAreNeverListMarkers": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/RefinementTests/testEmailHeadersDoNotGainInventedBullets": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/RefinementTests/testExistingProviderTargetAndModelAreNotOverwrittenByNewDefaults": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/RefinementTests/testFreshInstallAndAbsentPreferencesDefaultToEnglishDeepSeek": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.001,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/RefinementTests/testJapanesePunctuationAndWrapsNeverGainSpaceInsideBrackets": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/RefinementTests/testMarkupOnlyProfessionalResultIsRejected": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/RefinementTests/testMisreadMenuIconRequiresPhoneHeaderContextAndKeepsEquations": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/RefinementTests/testMixedProseAndListsWithoutBlankLinesKeepTheirBoundaries": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/RefinementTests/testOpenTimeWithSeparatorIsAFieldNotAHeading": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/RefinementTests/testProfessionalRemovesOnlyUnrequestedWholeBlockMarkup": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/RefinementTests/testPunctuationAttachedToTextIsNotFilteredAsOrphanNoise": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/RefinementTests/testSemanticEmojiAreKeptWithoutExtraBullet": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/RefinementTests/testSeparatorFilteringPreservesRatingsEmotionNumbersAndOperators": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/RefinementTests/testSymbolsAndEmailValuesAreNotEnlargedAsHeadings": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/RefinementTests/testTallEmojiDoesNotPromoteBodyTextToHeading": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/RefinementTests/testTaxFootnoteAndBilingualSignatureKeepSeparateParagraphs": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/RefinementTests/testWhitespaceNormalizationKeepsEmojiMathAndJapanesePunctuation": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.006,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/Release110IntegrationTests/testClipboardLoadsTextAndImageAndRejectsTextInVisualMode": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.037,
+      "run": "verification.log"
+    },
+    "ScreenTranslateTests/Release110IntegrationTests/testHorizontalTextDoesNotTriggerVerticalReflow": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 6.974,
+      "run": "verification.log"
+    },
+    "ScreenTranslateTests/Release110IntegrationTests/testReplacingImageAndChangingSourceDiscardPreviousOCR": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 5.628,
+      "run": "verification.log"
+    },
+    "ScreenTranslateTests/Release110IntegrationTests/testReviewAppliesOnlyConfirmedLineAndRetainsOtherWarnings": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.012,
+      "run": "verification.log"
+    },
+    "ScreenTranslateTests/Release110IntegrationTests/testUprightVerticalJapanesePixelsBecomeRightToLeftColumns": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 3.923,
+      "run": "verification.log"
+    },
+    "ScreenTranslateTests/Release110Tests/testClearingCacheRejectsLateRequestAndReportsFreshStatistics": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.026,
+      "run": "verification.log"
+    },
+    "ScreenTranslateTests/Release110Tests/testFiveColumnTableRetainsBlankCellAndWrappedName": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.009,
+      "run": "verification.log"
+    },
+    "ScreenTranslateTests/Release110Tests/testLocalBatchRestoresOutOfOrderParagraphsAndRejectsMissingText": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "verification.log"
+    },
+    "ScreenTranslateTests/Release110Tests/testLocalCacheIgnoresAPIOnlySettingsButKeepsLanguageDirection": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "verification.log"
+    },
+    "ScreenTranslateTests/Release110Tests/testReviewCoversSmallConfidentTextAndVerticalGlyphSize": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "verification.log"
+    },
+    "ScreenTranslateTests/Release110Tests/testVerticalColumnsReadRightToLeftAndPreserveHorizontalHeading": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "verification.log"
+    },
+    "ScreenTranslateTests/ScreenreaderIntegrationTests/testFullReaderDeclaresEverySelectedLanguageAndKeepsLastItem": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ScreenreaderIntegrationTests/testModePromptsPersistAndIntentSnapshotsUseTheRequestedMode": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.022,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ScreenreaderIntegrationTests/testSavingRejectsOversizedInactivePromptWithoutLosingSettings": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.007,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ScreenreaderTests/testCacheOnlyChangesForTheActiveModePrompt": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ScreenreaderTests/testCurrencyDotCanBeCorrectedWithoutChangingAnyAmount": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ScreenreaderTests/testCurrencyReviewRequiresPriceContextAndTwoMatchingPixelReadings": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ScreenreaderTests/testEachModeUsesItsOwnPromptAndResetDoesNotEraseOthers": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ScreenreaderTests/testEmailAvatarFilteringLeavesStandaloneNumbersAndLettersElsewhere": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ScreenreaderTests/testEnglishParagraphAndWrappedRefundBulletRemainWhole": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ScreenreaderTests/testLegacyGlobalPromptMigratesToAllModesWithoutChangingProvider": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ScreenreaderTests/testMenuSlashMisreadAsExclamationStillKeepsCaptionAndPrice": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ScreenreaderTests/testModeExamplesAreDistinctAndUseTheChosenLanguage": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.002,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ScreenreaderTests/testNewProfilesOverrideLegacyFieldAndEmptyDictionaryMeansReset": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/ScreenreaderTests/testSlopingBilingualMenuItemKeepsItsPriceAndCaptionTogether": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/TableLayoutTests/testBilingualProductLabelDoesNotConsumeItsDescription": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/TableLayoutTests/testBilingualTableHeadersRemainOneHeaderAndAdultChildPricesKeepTheirLabels": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.006,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/TableLayoutTests/testEmptyNumericFieldRetryIsBoundedByTheNextLabelAndExcludesOtherRows": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/TableLayoutTests/testFormLabelsUseTheirOwnNearbyValue": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/TableLayoutTests/testJapaneseScriptReviewNeedsTwoMatchingPixelReadings": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/TableLayoutTests/testProfessionalProtocolRejectsMovingNumbersBetweenColumns": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/TableLayoutTests/testQuantityCannotConsumeStockAcrossTheNextLabel": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/TableLayoutTests/testQuantityControlsAreRemovedButMathAndNumbersRemain": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/TableLayoutTests/testRouteNamesAloneDoNotBecomeTableCells": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.003,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/TableLayoutTests/testTicketRowsKeepQuantityAndAmountInSeparateColumns": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/TableLayoutTests/testWrappedBulletKeepsItsConditionInTheSameBlock": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.005,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/VisionDetailRequestTests/testAllProtocolsKeepWholeImageThenDetailImagesInOneRequest": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.01,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/VisionDetailRequestTests/testDetailsWithoutOverviewAndExcessiveFramesDoNotUpload": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.004,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/Release110UITests/testCameraPasteHiddenPromptCreditAndLanguagePacks": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 16.808,
+      "run": "verification.log"
+    },
+    "ScreenTranslateUITests/Release110UITests/testCopyClearAndPasteUsesClipboardText": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 14.602,
+      "run": "verification.log"
+    },
+    "ScreenTranslateUITests/Release110UITests/testVerticalReviewShowsOriginalCropAndAppliesConfirmedText": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 17.742,
+      "run": "verification.log"
+    },
+    "ScreenTranslateUITests/ScreenTranslateUITests/testAuthenticationFailureIsVisibleAndRetryRemainsAvailable": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 25.695,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ScreenTranslateUITests/testEditingSourceClearsStaleTranslation": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 20.242,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ScreenTranslateUITests/testHistorySearchDeleteAndFullDetail": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 22.014,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ScreenTranslateUITests/testJapaneseMenuShowsItemPricesConditionsAndLastButton": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 17.34,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ScreenTranslateUITests/testJapaneseVisualMenuHasSectionsAndReadableOriginal": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 17.353,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ScreenTranslateUITests/testLanguageSelectionTranslationAndSettingsRemainConsistent": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 102.154,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ScreenTranslateUITests/testLongResultScrollsToLastParagraphInRecentResult": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 25.747,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ScreenTranslateUITests/testMinimalHomeAndClearInputKeepsActionsAvailable": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 12.055,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ScreenTranslateUITests/testProfessionalModeKeepsBlocksAndSavedDefault": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 21.396,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ScreenTranslateUITests/testProfessionalScreenshotHasTypedLayoutAndRepeatsFromCache": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 19.056,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ScreenTranslateUITests/testProviderPresetSelectionAndPromptSaveRemainSeparate": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 29.636,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ScreenTranslateUITests/testReaderPreferencesApplyToHistory": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 18.548,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ScreenTranslateUITests/testServiceRestrictionsAndAppearanceSelection": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 30.049,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ScreenTranslateUITests/testSettingsOverviewHasDeveloperAndUsageInstructions": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 19.47,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ScreenTranslateUITests/testSettingsSaveAndAPIFieldsAreAvailable": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 19.145,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ScreenTranslateUITests/testSystemEngineShowsSimulatorBoundaryInsteadOfCallingAPI": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 19.284,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ScreenTranslateUITests/testTextTranslationShowsResultAndRecentResult": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 17.06,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ScreenTranslateUITests/testUncertainOCRCanRetryInVisualMode": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 19.901,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ScreenTranslateUITests/testVisualModeRequiresImageAndCanSwitchBack": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 7.247,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ScreenTranslateUITests/testVisualModeShowsDisclosureAndProducesSeparateOverview": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 13.457,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ScreenreaderUXTests/testDataPreferencesSaveWithoutChangingLanguageOrProvider": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 15.684,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ScreenreaderUXTests/testFreshInstallUsesChineseUIEnglishTargetAndDeepSeek": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 9.499,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ScreenreaderUXTests/testRapidLanguageSwapsKeepThePairConsistent": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 15.161,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ScreenreaderUXTests/testSettingsOverviewFillsOneScreenWithoutScrolling": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 8.345,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ScreenreaderUXTests/testThreePromptDraftsSaveSeparatelyAndResetOnlySelectedMode": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 31.492,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ShortcutsSystemTests/testImportFullShortcutAndReadLastParagraphInSystemQuickLook": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 131.058,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ShortcutsSystemTests/testScreenshotActionCanBeAddedAndHasImageParameter": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 22.087,
+      "run": "regression.log"
+    },
+    "ScreenTranslateUITests/ShortcutsSystemTests/testSystemDiscoversActionsAndPresentsTranslationCard": {
+      "target": "ScreenTranslateUITests",
+      "status": "passed",
+      "seconds": 37.448,
+      "run": "regression.log"
+    },
+    "ScreenTranslateTests/Release110IntegrationTests/testWideTableScrollsWithoutWideningTheDocumentOrLosingEmptyCells": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 1.474,
+      "run": "verification.log"
+    },
+    "ScreenTranslateTests/Release110Tests/testProfessionalTranslationPreservesEmptyOuterCellsAndRejectsInventedValues": {
+      "target": "ScreenTranslateTests",
+      "status": "passed",
+      "seconds": 0.01,
+      "run": "verification.log"
+    }
+  },
+  "limitations": [
+    "Real camera capture and permission recovery, live vision API upload, and Apple language-pack download/offline translation require device validation.",
+    "Synthetic OCR fixtures do not establish accuracy rates for real-world images."
+  ]
+}

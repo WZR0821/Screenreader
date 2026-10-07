@@ -1,0 +1,28 @@
+{
+  "file": "Screenreader-iOS-v1.1.1-build19-unsigned.ipa",
+  "version": "1.1.1",
+  "build": "19",
+  "bundleIdentifier": "com.raydon.ScreenTranslate",
+  "bundleName": "Screenreader",
+  "cameraUsageDescription": "拍摄需要翻译的文字或图片；确认照片后立即开始翻译。",
+  "internalPromptPreview": "Removed",
+  "localizedDisplayNames": {
+    "en": "Screenreader",
+    "zh-Hans": "读屏"
+  },
+  "minimumOSVersion": "18.0",
+  "platform": "iphoneos",
+  "architecture": "arm64",
+  "signature": "Unsigned: codesign confirms all bundled Mach-O objects are not signed",
+  "embeddedProvisioningProfile": false,
+  "debugAndSimulationCode": "Excluded",
+  "debugSymbolsAndLocalBuildPaths": "Stripped and verified absent",
+  "appIntents": [
+    "TranslateScreenshotDocumentIntent",
+    "TranslateScreenshotIntent",
+    "TranslateTextIntent"
+  ],
+  "zipCRC": "Valid",
+  "bytes": 2524594,
+  "sha256": "82dbfcf072a204ad1e378f0be2abdeb01b18af4da22f7c5822267c87f319a34a"
+}

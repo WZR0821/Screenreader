@@ -1,0 +1,119 @@
+{
+  "date": "2026-10-08",
+  "version": "1.1.1",
+  "build": 20,
+  "environment": "Xcode 16.2 / iOS 18.2 Simulator / iPhone 16 Pro",
+  "core": {
+    "passed": 151,
+    "failed": 0,
+    "log": "core-tests.log"
+  },
+  "iosIntegration": {
+    "passed": 9,
+    "failed": 0
+  },
+  "ui": {
+    "passed": 5,
+    "failed": 0
+  },
+  "aggregation": "Latest outcome per test from final-build20-tests.log and table-verified.log. The latter reruns the table flow and all integration tests after the manual-source provenance correction.",
+  "iosOutcomes": {
+    "ScreenTranslateTests.TranslationReviewIntegrationTests/testCancelledBlockRequestCannotCommitOrChangeHistory": {
+      "status": "passed",
+      "log": "table-verified.log"
+    },
+    "ScreenTranslateTests.TranslationReviewIntegrationTests/testCorrectedSourceIsUsedForNextWholeTranslationAndManualEditsClearMapping": {
+      "status": "passed",
+      "log": "table-verified.log"
+    },
+    "ScreenTranslateTests.TranslationReviewIntegrationTests/testCropsUseBottomLeftCoordinatesAndApplyEXIFOrientation": {
+      "status": "passed",
+      "log": "table-verified.log"
+    },
+    "ScreenTranslateTests.TranslationReviewIntegrationTests/testHistoryRevisionDoesNotDuplicateReorderOrReviveDeletedRecord": {
+      "status": "passed",
+      "log": "table-verified.log"
+    },
+    "ScreenTranslateTests.TranslationReviewIntegrationTests/testLongScreenshotReviewKeepsTheOCRResolutionForSmallPrint": {
+      "status": "passed",
+      "log": "table-verified.log"
+    },
+    "ScreenTranslateTests.TranslationReviewIntegrationTests/testNetworkFailureAndIncompleteOutputKeepOriginalResultAndDraft": {
+      "status": "passed",
+      "log": "table-verified.log"
+    },
+    "ScreenTranslateTests.TranslationReviewIntegrationTests/testOnlySelectedSourceIsSentAndHistoricalTargetIsKept": {
+      "status": "passed",
+      "log": "table-verified.log"
+    },
+    "ScreenTranslateTests.TranslationReviewIntegrationTests/testRealVisionBlockCanBeLocatedAndCroppedWithoutSavingImageToHistory": {
+      "status": "passed",
+      "log": "table-verified.log"
+    },
+    "ScreenTranslateTests.TranslationReviewIntegrationTests/testStaleEditorCannotOverwriteAnotherRevision": {
+      "status": "passed",
+      "log": "table-verified.log"
+    },
+    "ScreenTranslateUITests.ScreenTranslateUITests/testJapaneseMenuShowsItemPricesConditionsAndLastButton": {
+      "status": "passed",
+      "log": "final-build20-tests.log"
+    },
+    "ScreenTranslateUITests.ScreenTranslateUITests/testProfessionalScreenshotHasTypedLayoutAndRepeatsFromCache": {
+      "status": "passed",
+      "log": "final-build20-tests.log"
+    },
+    "ScreenTranslateUITests.TranslationReviewUITests/testFailureAndClosingDraftRetainPreviousTranslation": {
+      "status": "passed",
+      "log": "final-build20-tests.log"
+    },
+    "ScreenTranslateUITests.TranslationReviewUITests/testParagraphImageReviewEditsOneBlockAndHistoryReflectsChange": {
+      "status": "passed",
+      "log": "final-build20-tests.log"
+    },
+    "ScreenTranslateUITests.TranslationReviewUITests/testTableReviewKeepsCellsAndOtherRows": {
+      "status": "passed",
+      "log": "table-verified.log"
+    }
+  },
+  "totalDistinctPassed": 165,
+  "releaseBuild": {
+    "platform": "iphoneos",
+    "architecture": "arm64",
+    "log": "release-package-build.log",
+    "status": "Succeeded"
+  },
+  "package": {
+    "file": "Screenreader-iOS-v1.1.1-build20-unsigned.ipa",
+    "version": "1.1.1",
+    "build": "20",
+    "bundleIdentifier": "com.raydon.ScreenTranslate",
+    "bundleName": "Screenreader",
+    "cameraUsageDescription": "拍摄需要翻译的文字或图片；确认照片后立即开始翻译。",
+    "internalPromptPreview": "Removed",
+    "localizedDisplayNames": {
+      "en": "Screenreader",
+      "zh-Hans": "读屏"
+    },
+    "minimumOSVersion": "18.0",
+    "platform": "iphoneos",
+    "architecture": "arm64",
+    "signature": "Unsigned: codesign confirms all bundled Mach-O objects are not signed",
+    "embeddedProvisioningProfile": false,
+    "debugAndSimulationCode": "Excluded",
+    "debugSymbolsAndLocalBuildPaths": "Stripped and verified absent",
+    "appIntents": [
+      "TranslateScreenshotDocumentIntent",
+      "TranslateScreenshotIntent",
+      "TranslateTextIntent"
+    ],
+    "zipCRC": "Valid",
+    "bytes": 2621086,
+    "sha256": "71a27cc013fb3347b04bac3f9ba900041d969878aeffcdddbb5c753675cb32fe"
+  },
+  "realDeviceNewBinaryTested": false,
+  "onlineModelQualityRetested": false,
+  "notes": [
+    "Network/UI responses are fixtures; crop and OCR use real Apple Vision.",
+    "Earlier failed attempts remain in work/translation-review for diagnostics."
+  ]
+}

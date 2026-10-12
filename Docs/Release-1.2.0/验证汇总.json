@@ -1,0 +1,775 @@
+{
+  "version": "1.2.0",
+  "build": 21,
+  "date": "2026-10-12",
+  "environment": "Xcode 16.2 / iOS 18.2 / iPhone 16 Pro simulator",
+  "counts": {
+    "core": 154,
+    "iOSIntegration": 23,
+    "UI": 11
+  },
+  "distinctPassed": 188,
+  "failures": [],
+  "counting": "Latest completed result for each distinct test across the listed runs. Core tests ran through Swift Package Manager; iOS integration counts do not include core tests.",
+  "logs": [
+    "core-tests.log",
+    "verification-2.log",
+    "verification-final.log",
+    "verification-accessibility.log",
+    "verification-preview.log"
+  ],
+  "tests": {
+    "ScreenTranslateCoreTests.APIClientTests/testCancelledTaskDoesNotReturnTranslation": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.APIClientTests/testChatRequestUsesAuthAndSeparatesPromptFromInput": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.APIClientTests/testClaudeRequestUsesNativeHeadersAndSystemPrompt": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.APIClientTests/testHTTPFailuresMappedAndNeverRetriedAutomatically": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.APIClientTests/testMissingCredentialsNeverStartNetworkRequest": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.APIClientTests/testModelListSortedAndDeduplicated": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.APIClientTests/testNetworkTimeoutAndOfflineErrorsMapped": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.APIClientTests/testResponsesRequestDisablesServerStorage": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testBuiltInProvidersHaveSelectableModelsAndCorrectEndpoints": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testChatParserHandlesMultipartContent": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testChatParserPreservesQuotesAndWhitespaceInsideTranslation": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testClaudeParserSkipsThinking": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testCustomPromptExpandsVariablesWithoutInterpretingGlossary": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testEmptyInputRejected": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testEmptyRefusalAndMalformedResponsesRejected": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testEndpointsAcceptBaseAndFullRoutes": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testGlossaryLimit": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testGlossaryRecognitionWordsAreDeduplicatedAndBounded": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testInsecureAndAmbiguousURLsRejected": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testLanguageOptionsAndEveryDirectionHaveExplicitPrompt": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testLanguageSwapAndAutomaticSourceBehavior": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testLayoutPreservesParagraphGapsAndSameRowOrder": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testLayoutRejoinsEnglishWrappedLines": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testLayoutRejoinsJapaneseWithoutSpuriousSpaces": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testLegacyConfigurationMigrationKeepsAPIAndPreferences": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testNumberedAndBulletedOCRLinesStaySeparate": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testOldSettingsDefaultToEmptyCustomPrompt": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testPromptContainsTargetAndTreatsInputAsData": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testProviderConfigurationsRemainSeparate": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testResponsesParserSkipsReasoningAndCollectsAllMessages": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testResponsesRejectsIncompleteTranslation": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testSettingsRoundTrip": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testTextLimitIncludesUnicodeCharacters": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testTextNormalizationKeepsParagraphsAndUnicode": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testTruncatedChatAndClaudeNeverReturnPartialSuccess": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.CoreTests/testUserFacingErrorsDoNotExposeSecrets": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ImageRequestTests/testAllThreeProtocolsSendJPEGInTheirDocumentedShapes": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ImageRequestTests/testKnownTextOnlyModelRejectsImageBeforeUpload": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ImageRequestTests/testSpeedPreferenceIsProviderSpecificAndCanBeDisabled": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ImageRequestTests/testTextRequestNeverSendsImageEvenWhenSavedModeIsVisual": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.JapaneseTests/testDateReviewRequiresExplicitContextTwoMatchingReadingsAndValidCalendarDate": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.JapaneseTests/testFieldColumnsOnlySplitUnambiguousPricesAndLabels": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.JapaneseTests/testInvalidPreferencesAlsoRejectImageRequests": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.JapaneseTests/testJapaneseQuickAndProfessionalRequireAccuracyWithoutExpanding": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.JapaneseTests/testJapaneseTaxAnnotatedPriceStaysWithItsItem": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.JapaneseTests/testVisualLayoutHandlesJapaneseAndEnglishAndKeepsUnexpectedMarkupAsText": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.JapaneseTests/testVisualLayoutPreservesJapaneseMenuOptionsAmountsAndCautions": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.JapaneseTests/testVisualPromptHasOneTaskAndUsesSelectedLanguageForSectionLabels": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.LayoutAndCacheTests/testCacheByteLimitAndEmptyValues": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.LayoutAndCacheTests/testCacheExpiresEvictsLeastRecentlyUsedAndClears": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.LayoutAndCacheTests/testCacheIdentityIncludesTranslationInputsAndExcludesAppearance": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.LayoutAndCacheTests/testDigitsAtEdgesDatesAndPercentagesSurvivePhoneShape": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.LayoutAndCacheTests/testEquidistantNumberIsKeptRatherThanAssignedToWrongQuantity": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.LayoutAndCacheTests/testGeometryKeepsMultipleHeadingsListsAndParagraphs": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.LayoutAndCacheTests/testLargeNoticeProseAndEventTimesAreNotTurnedIntoHeadings": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.LayoutAndCacheTests/testNearbyQuantityLabelsEachOwnTheirClosestNumber": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.LayoutAndCacheTests/testNegativeNumbersKeepTheirSignWhileDateHyphensRemainSeparators": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.LayoutAndCacheTests/testPlainTextListsDoNotLoseNumbering": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.LayoutAndCacheTests/testProfessionalOutputUsesSourceKindsEvenIfModelInventsThem": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.LayoutAndCacheTests/testProfessionalRejectsMissingChangedAndSubstringNumbers": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.LayoutAndCacheTests/testRefinementCanCorrectTextButCannotReplaceQuantityOrPrice": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.LayoutAndCacheTests/testRequiredChoiceHeadingAndFirstOptionKeepListDespiteGlyphHeightDifference": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ModeTests/testAPIModesRoundTripIndependently": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ModeTests/testLegacyModeMigrationPreservesVisualAndSpeedPreference": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ModeTests/testProfessionalRejectsMissingDuplicateEmptyAndInventedBlocks": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ModeTests/testProfessionalRestoresOrderAndKeepsPriceAndListLines": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ModeTests/testProfessionalUsesOneRequestAndRestoresEveryProtocol": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ModeTests/testQuickPromptIsShortAndVisualSeparatesTwoMeanings": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.PreferencesTests/testAppearanceAndReaderSurviveReloadAndNormalizeInvalidValues": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.PreferencesTests/testCustomTypographySurvivesReloadAndBoundsUnsafeValues": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.PreferencesTests/testEveryPaletteAndExtremeCustomColorHasReadableContrast": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.PreferencesTests/testLocalBatchTranslatesRepeatedParagraphOnceAndRestoresEveryOccurrence": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.PreferencesTests/testMigrationPreservesExistingAPIProfessionalAndVisualUse": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.PreferencesTests/testOlderReaderPreferencesKeepPresetsAndSavedLanguage": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.PreferencesTests/testSystemServiceNormalizesUnavailableModesAndAsking": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ReadabilityTests/testDocumentTimeAtTopIsNotMistakenForStatusBarWithoutPhoneEvidence": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ReadabilityTests/testFormattingRemovesExcessBlankSpaceWithoutLosingMeaningfulSymbols": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ReadabilityTests/testFormGroupsValuesWithLabelsWithoutDroppingStandaloneQuantity": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ReadabilityTests/testImagePromptSeparatesMeaningFromTranslationAndForbidsGuessing": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ReadabilityTests/testJapaneseMiddleDotIsKeptAsBulletButNotStandaloneToolbarEllipsis": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ReadabilityTests/testJapaneseQuantityControlDoesNotRemoveMeaningfulTenOrDigits": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ReadabilityTests/testLargerWrappedTitleStaysTogetherAndDescriptionStartsNewParagraph": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ReadabilityTests/testLowConfidenceEdgeNumbersAreKeptWithoutEvidenceTheyAreChrome": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ReadabilityTests/testNearbyFragmentsJoinButSeparateColumnsRemainSeparate": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ReadabilityTests/testOldSettingsMigrateToTextOnlyAndExistingKeysRemainIntact": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ReadabilityTests/testPreviewIsBoundedAndNeverMutatesOriginal": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ReadabilityTests/testScreenshotNoiseIsRemovedButBodyNumbersNamesAndPunctuationSurvive": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ReadabilityTests/testStatusClockWithOCRSuffixDoesNotConsumeTheTranslationPreview": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.RefinementTests/testChineseInterfaceLabelsDoNotLeakIntoEnglishModelInstructions": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.RefinementTests/testDecimalsDatesAndBareNumbersAreNeverListMarkers": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.RefinementTests/testEmailHeadersDoNotGainInventedBullets": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.RefinementTests/testExistingProviderTargetAndModelAreNotOverwrittenByNewDefaults": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.RefinementTests/testFreshInstallAndAbsentPreferencesDefaultToChineseDeepSeek": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.RefinementTests/testJapanesePunctuationAndWrapsNeverGainSpaceInsideBrackets": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.RefinementTests/testMarkupOnlyProfessionalResultIsRejected": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.RefinementTests/testMisreadMenuIconRequiresPhoneHeaderContextAndKeepsEquations": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.RefinementTests/testMixedProseAndListsWithoutBlankLinesKeepTheirBoundaries": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.RefinementTests/testOpenTimeWithSeparatorIsAFieldNotAHeading": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.RefinementTests/testProfessionalRemovesOnlyUnrequestedWholeBlockMarkup": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.RefinementTests/testPunctuationAttachedToTextIsNotFilteredAsOrphanNoise": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.RefinementTests/testSemanticEmojiAreKeptWithoutExtraBullet": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.RefinementTests/testSeparatorFilteringPreservesRatingsEmotionNumbersAndOperators": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.RefinementTests/testSymbolsAndEmailValuesAreNotEnlargedAsHeadings": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.RefinementTests/testTallEmojiDoesNotPromoteBodyTextToHeading": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.RefinementTests/testTaxFootnoteAndBilingualSignatureKeepSeparateParagraphs": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.RefinementTests/testWhitespaceNormalizationKeepsEmojiMathAndJapanesePunctuation": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.Release110Tests/testClearingCacheRejectsLateRequestAndReportsFreshStatistics": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.Release110Tests/testFiveColumnTableRetainsBlankCellAndWrappedName": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.Release110Tests/testLocalBatchRestoresOutOfOrderParagraphsAndRejectsMissingText": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.Release110Tests/testLocalCacheIgnoresAPIOnlySettingsButKeepsLanguageDirection": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.Release110Tests/testProfessionalTranslationPreservesEmptyOuterCellsAndRejectsInventedValues": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.Release110Tests/testReviewCoversSmallConfidentTextAndVerticalGlyphSize": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.Release110Tests/testVerticalColumnsReadRightToLeftAndPreserveHorizontalHeading": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.Release111RequestTests/testDeepSeekProfessionalAndVisionUseDocumentedLowEffortAcrossProtocols": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.Release111Tests/testBilingualInstitutionLabelIsOneBlockWithoutConsumingBody": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.Release111Tests/testCriticalDateAndWrongScriptAreReviewedBeforeOrdinaryLowConfidenceText": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.Release111Tests/testEnglishHeadingsDoNotHideEntireParagraphsInTheWrongLanguage": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.Release111Tests/testJapaneseOptionsAndDifferentColumnsAreNotMergedAsProse": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.Release111Tests/testRealContentStartingWithTimeIsKeptInTopMargin": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.Release111Tests/testRealMuseumWebParagraphKeepsWordsAcrossJapaneseWraps": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.Release111Tests/testSilentIconOCRDoesNotBecomeRequiredAndBatteryDoesNotBecomeMinutes": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ScreenreaderTests/testCacheOnlyChangesForTheActiveModePrompt": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ScreenreaderTests/testCurrencyDotCanBeCorrectedWithoutChangingAnyAmount": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ScreenreaderTests/testCurrencyReviewRequiresPriceContextAndTwoMatchingPixelReadings": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ScreenreaderTests/testEachModeUsesItsOwnPromptAndResetDoesNotEraseOthers": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ScreenreaderTests/testEmailAvatarFilteringLeavesStandaloneNumbersAndLettersElsewhere": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ScreenreaderTests/testEnglishParagraphAndWrappedRefundBulletRemainWhole": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ScreenreaderTests/testLegacyGlobalPromptMigratesToAllModesWithoutChangingProvider": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ScreenreaderTests/testMenuSlashMisreadAsExclamationStillKeepsCaptionAndPrice": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ScreenreaderTests/testModeExamplesAreDistinctAndUseTheChosenLanguage": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ScreenreaderTests/testNewProfilesOverrideLegacyFieldAndEmptyDictionaryMeansReset": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.ScreenreaderTests/testSlopingBilingualMenuItemKeepsItsPriceAndCaptionTogether": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.TableLayoutTests/testBilingualProductLabelDoesNotConsumeItsDescription": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.TableLayoutTests/testBilingualTableHeadersRemainOneHeaderAndAdultChildPricesKeepTheirLabels": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.TableLayoutTests/testEmptyNumericFieldRetryIsBoundedByTheNextLabelAndExcludesOtherRows": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.TableLayoutTests/testFormLabelsUseTheirOwnNearbyValue": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.TableLayoutTests/testJapaneseScriptReviewNeedsTwoMatchingPixelReadings": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.TableLayoutTests/testProfessionalProtocolRejectsMovingNumbersBetweenColumns": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.TableLayoutTests/testQuantityCannotConsumeStockAcrossTheNextLabel": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.TableLayoutTests/testQuantityControlsAreRemovedButMathAndNumbersRemain": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.TableLayoutTests/testRouteNamesAloneDoNotBecomeTableCells": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.TableLayoutTests/testTicketRowsKeepQuantityAndAmountInSeparateColumns": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.TableLayoutTests/testWrappedBulletKeepsItsConditionInTheSameBlock": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.TranslationReviewTests/testEditedTableRetainsOuterEmptyColumnsAndChecksNewAmountsPerCell": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.TranslationReviewTests/testExistingBlockHistoryStillDecodesWithoutReviewMetadata": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.TranslationReviewTests/testLocalBoundsSurviveTranslationButNeverReachAPI": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.TranslationReviewTests/testMissingOriginalVisualOrDuplicateIDsCannotBeReviewed": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.TranslationReviewTests/testReviewKeepsSavedTargetWhenCurrentLanguageOrServiceChanges": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.TranslationReviewTests/testRevisionOnlyReplacesSelectedBlockAndKeepsIdentityAndLayout": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.TranslationReviewTests/testTableRowBoundsIncludeAllColumnsAndWrappedCell": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.TranslationReviewTests/testVerticalColumnsKeepSeparateSourceCrops": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.TranslationReviewTests/testWrappedJapaneseParagraphBoundsCoverEverySourceLine": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.VisionDetailRequestTests/testAllProtocolsKeepWholeImageThenDetailImagesInOneRequest": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateCoreTests.VisionDetailRequestTests/testDetailsWithoutOverviewAndExcessiveFramesDoNotUpload": {
+      "status": "passed",
+      "log": "core-tests.log"
+    },
+    "ScreenTranslateTests.OptimizationIntegrationTests/testFailedOrIncompleteRequestsAreNotCached": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateTests.OptimizationIntegrationTests/testRealSmallTextInvokesBoundedLocalReviewAndQuickModeSkipsIt": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateTests.OptimizationIntegrationTests/testRealVisionKeepsInformationHeadingAndSentenceParagraphs": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateTests.OptimizationIntegrationTests/testRepeatedAPITextSkipsNetworkAndChangedPromptOrDisabledCacheDoesNot": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateTests.OptimizationIntegrationTests/testTypedDocumentRendersEveryHeadingListAndPriceWithoutMarkupInjection": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateTests.PreferencesIntegrationTests/testCorruptHistoryIsNotSilentlyOverwritten": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateTests.PreferencesIntegrationTests/testCustomReaderPersistsAndAppliesToParagraphListAndTableDocument": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateTests.PreferencesIntegrationTests/testFullDocumentUsesReaderAppearanceAndEscapesOriginal": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateTests.PreferencesIntegrationTests/testLegacyResultMigratesThenKeepsMultipleResultsAcrossStores": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateTests.PreferencesIntegrationTests/testRetentionDeduplicationDeletionAndDisableArePersistent": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateTests.PreferencesIntegrationTests/testSwitchingServiceRestrictsModesWithoutLosingCredentialsOrColors": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateTests.Release120IntegrationTests/testRecognitionCacheEvictsExpiresAndCannotRepopulateAfterClear": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateTests.Release120IntegrationTests/testRecognitionIdentityChangesWithEveryRecognitionInput": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateTests.Release120IntegrationTests/testRepeatedImageSkipsVisionAndNetworkAndDisablingCacheRunsBoth": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateTests.TranslationReviewIntegrationTests/testCancelledBlockRequestCannotCommitOrChangeHistory": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateTests.TranslationReviewIntegrationTests/testCorrectedSourceIsUsedForNextWholeTranslationAndManualEditsClearMapping": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateTests.TranslationReviewIntegrationTests/testCropsUseBottomLeftCoordinatesAndApplyEXIFOrientation": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateTests.TranslationReviewIntegrationTests/testHistoryRevisionDoesNotDuplicateReorderOrReviveDeletedRecord": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateTests.TranslationReviewIntegrationTests/testLongScreenshotReviewKeepsTheOCRResolutionForSmallPrint": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateTests.TranslationReviewIntegrationTests/testNetworkFailureAndIncompleteOutputKeepOriginalResultAndDraft": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateTests.TranslationReviewIntegrationTests/testOnlySelectedSourceIsSentAndHistoricalTargetIsKept": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateTests.TranslationReviewIntegrationTests/testRealVisionBlockCanBeLocatedAndCroppedWithoutSavingImageToHistory": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateTests.TranslationReviewIntegrationTests/testStaleEditorCannotOverwriteAnotherRevision": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateUITests.Release110UITests/testCameraPasteHiddenPromptCreditAndLanguagePacks": {
+      "status": "passed",
+      "log": "verification-final.log"
+    },
+    "ScreenTranslateUITests.Release110UITests/testCopyClearAndPasteUsesClipboardText": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateUITests.Release110UITests/testVerticalReviewShowsOriginalCropAndAppliesConfirmedText": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateUITests.Release120UITests/testCustomTypographyFromTranslationPersistsAcrossSettingsAndResets": {
+      "status": "passed",
+      "log": "verification-preview.log"
+    },
+    "ScreenTranslateUITests.Release120UITests/testSpacingAndSizePresetsReplaceCustomValues": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateUITests.ScreenTranslateUITests/testReaderPreferencesApplyToHistory": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateUITests.ScreenTranslateUITests/testServiceRestrictionsAndAppearanceSelection": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateUITests.ScreenreaderUXTests/testFreshInstallUsesChineseTargetAndDeepSeek": {
+      "status": "passed",
+      "log": "verification-2.log"
+    },
+    "ScreenTranslateUITests.ScreenreaderUXTests/testRapidLanguageSwapsKeepThePairConsistent": {
+      "status": "passed",
+      "log": "verification-accessibility.log"
+    },
+    "ScreenTranslateUITests.ScreenreaderUXTests/testSettingsOverviewFillsOneScreenWithoutScrolling": {
+      "status": "passed",
+      "log": "verification-final.log"
+    },
+    "ScreenTranslateUITests.Release120UITests/testAccessibilitySizeKeepsSettingsReachable": {
+      "status": "passed",
+      "log": "verification-accessibility.log"
+    }
+  }
+}

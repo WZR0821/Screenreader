@@ -1,0 +1,9 @@
+{
+  "scenario": "real Vision, local HTTP stub (no external network)",
+  "firstSeconds": 2.386255979537964,
+  "repeatSeconds": 0.0006090402603149414,
+  "uncachedSeconds": 2.2878520488739014,
+  "firstOCRSeconds": 2.384266972541809,
+  "repeatOCRSeconds": 0.0003490447998046875,
+  "networkCallsForFirstAndRepeat": 1
+}

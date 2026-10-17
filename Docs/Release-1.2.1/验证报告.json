@@ -1,0 +1,159 @@
+{
+  "version": "1.2.1",
+  "build": "24",
+  "date": "2026-10-17",
+  "coreTests": {
+    "passed": 158,
+    "failed": 0,
+    "environment": "macOS Swift Package Manager",
+    "log": "work/release-1.2.1/core.log"
+  },
+  "uiTests": {
+    "passedUniqueCases": 16,
+    "executions": 22,
+    "failedLatestCases": 0,
+    "environment": "iPhone 16 Pro / iOS 18.2 Simulator",
+    "scope": "Selected UI regressions; latest outcome retained after visual fixes. Not a full-suite run.",
+    "cases": [
+      {
+        "test": "Release110UITests testCopyClearAndPasteUsesClipboardText",
+        "status": "passed",
+        "seconds": 21.382,
+        "resultBundle": "work/release-1.2.1/ready.xcresult"
+      },
+      {
+        "test": "TranslationPolishUITests testDashboardHistoryOpensAndReturnsToHome",
+        "status": "passed",
+        "seconds": 21.344,
+        "resultBundle": "work/release-1.2.1/smoke.xcresult"
+      },
+      {
+        "test": "TranslationPolishUITests testEmptyInputKeepsActionNearbyAndNoReadingButtonsInNavigation",
+        "status": "passed",
+        "seconds": 14.907,
+        "resultBundle": "work/release-1.2.1/smoke.xcresult"
+      },
+      {
+        "test": "TranslationPolishUITests testJapaneseFuriganaBelongsToResultHeader",
+        "status": "passed",
+        "seconds": 19.598,
+        "resultBundle": "work/release-1.2.1/smoke.xcresult"
+      },
+      {
+        "test": "FuriganaUITests testJapaneseParagraphListTableAndLargeText",
+        "status": "passed",
+        "seconds": 35.349,
+        "resultBundle": "work/release-1.2.1/regression.xcresult"
+      },
+      {
+        "test": "FuriganaUITests testTranslationSettingsAndHistoryShareOneSwitchWithoutRetranslating",
+        "status": "passed",
+        "seconds": 43.497,
+        "resultBundle": "work/release-1.2.1/regression.xcresult"
+      },
+      {
+        "test": "Release110UITests testCameraPasteHiddenPromptCreditAndLanguagePacks",
+        "status": "passed",
+        "seconds": 24.644,
+        "resultBundle": "work/release-1.2.1/regression.xcresult"
+      },
+      {
+        "test": "Release120UITests testAccessibilitySizeKeepsSettingsReachable",
+        "status": "passed",
+        "seconds": 23.347,
+        "resultBundle": "work/release-1.2.1/regression.xcresult"
+      },
+      {
+        "test": "ScreenTranslateUITests testHistorySearchDeleteAndFullDetail",
+        "status": "passed",
+        "seconds": 27.49,
+        "resultBundle": "work/release-1.2.1/regression.xcresult"
+      },
+      {
+        "test": "ScreenTranslateUITests testProfessionalScreenshotHasTypedLayoutAndRepeatsFromCache",
+        "status": "passed",
+        "seconds": 24.154,
+        "resultBundle": "work/release-1.2.1/regression.xcresult"
+      },
+      {
+        "test": "TranslationPolishUITests testChangingTargetInSettingsReturnsToInput",
+        "status": "passed",
+        "seconds": 21.14,
+        "resultBundle": "work/release-1.2.1/regression.xcresult"
+      },
+      {
+        "test": "TranslationPolishUITests testChineseResultIsCompactAndDetailsRemainAvailable",
+        "status": "passed",
+        "seconds": 35.248,
+        "resultBundle": "work/release-1.2.1/regression.xcresult"
+      },
+      {
+        "test": "TranslationPolishUITests testDarkLargeTextKeepsInputAndTranslationReachable",
+        "status": "passed",
+        "seconds": 21.64,
+        "resultBundle": "work/release-1.2.1/ready.xcresult"
+      },
+      {
+        "test": "TranslationPolishUITests testLongReadingReachesLastParagraphWithoutBottomActionBar",
+        "status": "passed",
+        "seconds": 25.3,
+        "resultBundle": "work/release-1.2.1/regression.xcresult"
+      },
+      {
+        "test": "TranslationReviewUITests testParagraphImageReviewEditsOneBlockAndHistoryReflectsChange",
+        "status": "passed",
+        "seconds": 84.147,
+        "resultBundle": "work/release-1.2.1/regression.xcresult"
+      },
+      {
+        "test": "ScreenreaderUXTests testNativeSettingsSectionsAndCreditRemainReachable",
+        "status": "passed",
+        "seconds": 17.632,
+        "resultBundle": "work/release-1.2.1/settings.xcresult"
+      }
+    ]
+  },
+  "releaseBuild": {
+    "status": "passed",
+    "log": "work/release-1.2.1/ready-release.log"
+  },
+  "package": {
+    "file": "Screenreader-iOS-v1.2.1-build24-unsigned.ipa",
+    "version": "1.2.1",
+    "build": "24",
+    "bundleIdentifier": "com.raydon.ScreenTranslate",
+    "bundleName": "Screenreader",
+    "cameraUsageDescription": "拍摄需要翻译的文字或图片；确认照片后立即开始翻译。",
+    "internalPromptPreview": "Removed",
+    "localizedDisplayNames": {
+      "en": "Screenreader",
+      "zh-Hans": "读屏"
+    },
+    "minimumOSVersion": "18.0",
+    "platform": "iphoneos",
+    "architecture": "arm64",
+    "signature": "Unsigned: codesign confirms all bundled Mach-O objects are not signed",
+    "embeddedProvisioningProfile": false,
+    "debugAndSimulationCode": "Excluded",
+    "debugSymbolsAndLocalBuildPaths": "Stripped and verified absent",
+    "appIntents": [
+      "TranslateScreenshotDocumentIntent",
+      "TranslateScreenshotIntent",
+      "TranslateTextIntent"
+    ],
+    "zipCRC": "Valid",
+    "bytes": 2749255,
+    "sha256": "4b5a236bbba9b5970c1e6d24912861d06721e61be0a80a28fbd87ee29230b0b4"
+  },
+  "network": "Isolated fixtures only; no external translation API requests",
+  "physicalDevice": "Paused at user request; not resumed",
+  "infrastructureNote": "The initial visual run was interrupted before test execution because the simulator runner did not connect. Subsequent completed result bundles all passed.",
+  "previews": [
+    "主页预览.png",
+    "输入预览.png",
+    "设置预览.png",
+    "日语阅读预览.png",
+    "深色大字操作预览.png"
+  ],
+  "visualInspection": "Reviewed actual normal, Japanese reading, native settings and Accessibility XXXL dark screenshots; verified import icons scale together and recent-history header stacks at accessibility sizes."
+}

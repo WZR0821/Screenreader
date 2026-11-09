@@ -1,0 +1,372 @@
+{
+  "version": "1.2.1",
+  "build": "25",
+  "date": "2026-11-09",
+  "environment": "Xcode 16.2 / iOS 18.2 iPhone 16 Pro simulator",
+  "coreTests": 158,
+  "selectedIOSIntegrationTests": 24,
+  "selectedUITests": 18,
+  "allLatestOutcomes": "passed",
+  "note": "Selected integration/UI cases, not a full suite. Counts use the last outcome per case. Core tests are a separate SwiftPM run.",
+  "executionCount": 60,
+  "earlierFailures": [
+    {
+      "test": "ScreenTranslateUITests.TranslationPolishUITests/testDarkLargeTextKeepsInputAndTranslationReachable",
+      "outcome": "failed",
+      "seconds": 24.693,
+      "run": "final.xcresult"
+    }
+  ],
+  "fixedDuringValidation": "At Accessibility XXXL, the unfocused source editor consumed page swipes. Disabling its internal scrolling while unfocused restored access to actions. The unchanged UI assertion then passed.",
+  "iosCases": [
+    {
+      "test": "ScreenTranslateTests.FuriganaIntegrationTests/testFullReaderRubyToggleEscapesContentAndDoesNotAnnotateOriginalOrChinese",
+      "outcome": "passed",
+      "seconds": 0.268,
+      "run": "first.xcresult"
+    },
+    {
+      "test": "ScreenTranslateTests.FuriganaIntegrationTests/testNarrowColumnsAndLargeFontsKeepEveryCharacterVisible",
+      "outcome": "passed",
+      "seconds": 0.362,
+      "run": "first.xcresult"
+    },
+    {
+      "test": "ScreenTranslateTests.FuriganaIntegrationTests/testRubyIsCenteredAboveKanjiAtHalfSizeAndBaseStringIsUnchanged",
+      "outcome": "passed",
+      "seconds": 0.016,
+      "run": "first.xcresult"
+    },
+    {
+      "test": "ScreenTranslateTests.FuriganaIntegrationTests/testStandaloneReaderCanToggleRubyAndKeepsItAboveBaseText",
+      "outcome": "passed",
+      "seconds": 4.283,
+      "run": "first.xcresult"
+    },
+    {
+      "test": "ScreenTranslateTests.PreferencesIntegrationTests/testCustomReaderPersistsAndAppliesToParagraphListAndTableDocument",
+      "outcome": "passed",
+      "seconds": 0.045,
+      "run": "first.xcresult"
+    },
+    {
+      "test": "ScreenTranslateTests.ReadabilityIntegrationTests/testFullReaderHasOnlyReadingContentAndCollapsibleOriginal",
+      "outcome": "passed",
+      "seconds": 0.005,
+      "run": "first.xcresult"
+    },
+    {
+      "test": "ScreenTranslateTests.TranslationInteractionTests/testCancelledRequestCannotOverwriteNewInputOrSaveAnOldResult",
+      "outcome": "passed",
+      "seconds": 0.298,
+      "run": "regression.xcresult"
+    },
+    {
+      "test": "ScreenTranslateTests.TranslationInteractionTests/testCancelledShortcutCannotStoreAResult",
+      "outcome": "passed",
+      "seconds": 0.026,
+      "run": "regression.xcresult"
+    },
+    {
+      "test": "ScreenTranslateTests.TranslationInteractionTests/testCancelRetryPreservesPreviousResultAndIgnoresLateCompletion",
+      "outcome": "passed",
+      "seconds": 0.547,
+      "run": "regression.xcresult"
+    },
+    {
+      "test": "ScreenTranslateTests.TranslationInteractionTests/testExplicitRetryBypassesCacheAndFailurePreservesReadableResult",
+      "outcome": "passed",
+      "seconds": 0.151,
+      "run": "final.xcresult"
+    },
+    {
+      "test": "ScreenTranslateTests.TranslationInteractionTests/testPastingNewContentInvalidatesResultAndLeavesItReadyForManualTranslation",
+      "outcome": "passed",
+      "seconds": 0.069,
+      "run": "regression.xcresult"
+    },
+    {
+      "test": "ScreenTranslateTests.TranslationInteractionTests/testQuickLookReaderFitsNarrowScreenAndOriginalFollowsTranslation",
+      "outcome": "passed",
+      "seconds": 1.46,
+      "run": "regression.xcresult"
+    },
+    {
+      "test": "ScreenTranslateTests.ModeIntegrationTests/testShortcutOverrideUsesAPIAndDoesNotChangeDefaultOrEngine",
+      "outcome": "passed",
+      "seconds": 0.083,
+      "run": "regression.xcresult"
+    },
+    {
+      "test": "ScreenTranslateTests.ModeIntegrationTests/testSystemChoiceDoesNotRequireAPIKeyOrSendNetworkRequest",
+      "outcome": "passed",
+      "seconds": 0.013,
+      "run": "regression.xcresult"
+    },
+    {
+      "test": "ScreenTranslateTests.ModeIntegrationTests/testVisualModeCannotTranslateTextWithoutImage",
+      "outcome": "passed",
+      "seconds": 0.007,
+      "run": "regression.xcresult"
+    },
+    {
+      "test": "ScreenTranslateTests.TranslationReviewIntegrationTests/testCancelledBlockRequestCannotCommitOrChangeHistory",
+      "outcome": "passed",
+      "seconds": 0.34,
+      "run": "regression.xcresult"
+    },
+    {
+      "test": "ScreenTranslateTests.TranslationReviewIntegrationTests/testCorrectedSourceIsUsedForNextWholeTranslationAndManualEditsClearMapping",
+      "outcome": "passed",
+      "seconds": 0.225,
+      "run": "regression.xcresult"
+    },
+    {
+      "test": "ScreenTranslateTests.TranslationReviewIntegrationTests/testCropsUseBottomLeftCoordinatesAndApplyEXIFOrientation",
+      "outcome": "passed",
+      "seconds": 0.051,
+      "run": "regression.xcresult"
+    },
+    {
+      "test": "ScreenTranslateTests.TranslationReviewIntegrationTests/testHistoryRevisionDoesNotDuplicateReorderOrReviveDeletedRecord",
+      "outcome": "passed",
+      "seconds": 0.025,
+      "run": "regression.xcresult"
+    },
+    {
+      "test": "ScreenTranslateTests.TranslationReviewIntegrationTests/testLongScreenshotReviewKeepsTheOCRResolutionForSmallPrint",
+      "outcome": "passed",
+      "seconds": 0.199,
+      "run": "regression.xcresult"
+    },
+    {
+      "test": "ScreenTranslateTests.TranslationReviewIntegrationTests/testNetworkFailureAndIncompleteOutputKeepOriginalResultAndDraft",
+      "outcome": "passed",
+      "seconds": 0.06,
+      "run": "regression.xcresult"
+    },
+    {
+      "test": "ScreenTranslateTests.TranslationReviewIntegrationTests/testOnlySelectedSourceIsSentAndHistoricalTargetIsKept",
+      "outcome": "passed",
+      "seconds": 0.031,
+      "run": "final.xcresult"
+    },
+    {
+      "test": "ScreenTranslateTests.TranslationReviewIntegrationTests/testRealVisionBlockCanBeLocatedAndCroppedWithoutSavingImageToHistory",
+      "outcome": "passed",
+      "seconds": 3.923,
+      "run": "regression.xcresult"
+    },
+    {
+      "test": "ScreenTranslateTests.TranslationReviewIntegrationTests/testStaleEditorCannotOverwriteAnotherRevision",
+      "outcome": "passed",
+      "seconds": 0.038,
+      "run": "regression.xcresult"
+    }
+  ],
+  "uiCases": [
+    {
+      "test": "ScreenTranslateUITests.TranslationPolishUITests/testBackgroundCompletionKeepsHistoryOpenAndResultCanResume",
+      "outcome": "passed",
+      "seconds": 26.04,
+      "run": "regression.xcresult"
+    },
+    {
+      "test": "ScreenTranslateUITests.TranslationPolishUITests/testCancelInitialTranslationReturnsToPreservedInput",
+      "outcome": "passed",
+      "seconds": 15.098,
+      "run": "regression.xcresult"
+    },
+    {
+      "test": "ScreenTranslateUITests.TranslationPolishUITests/testEmptyInputKeepsActionNearbyAndNoReadingButtonsInNavigation",
+      "outcome": "passed",
+      "seconds": 11.213,
+      "run": "final.xcresult"
+    },
+    {
+      "test": "ScreenTranslateUITests.TranslationPolishUITests/testWholeRetranslationFailureKeepsPreviousTextAndOffersRetry",
+      "outcome": "passed",
+      "seconds": 16.11,
+      "run": "regression.xcresult"
+    },
+    {
+      "test": "ScreenTranslateUITests.TranslationPolishUITests/testChangingTargetInSettingsReturnsToInput",
+      "outcome": "passed",
+      "seconds": 18.554,
+      "run": "regression.xcresult"
+    },
+    {
+      "test": "ScreenTranslateUITests.TranslationPolishUITests/testChineseResultIsCompactAndDetailsRemainAvailable",
+      "outcome": "passed",
+      "seconds": 32.904,
+      "run": "scroll-fix.xcresult"
+    },
+    {
+      "test": "ScreenTranslateUITests.TranslationPolishUITests/testDarkLargeTextKeepsInputAndTranslationReachable",
+      "outcome": "passed",
+      "seconds": 16.1,
+      "run": "scroll-fix.xcresult"
+    },
+    {
+      "test": "ScreenTranslateUITests.TranslationPolishUITests/testDashboardHistoryOpensAndReturnsToHome",
+      "outcome": "passed",
+      "seconds": 14.3,
+      "run": "final.xcresult"
+    },
+    {
+      "test": "ScreenTranslateUITests.TranslationPolishUITests/testJapaneseFuriganaBelongsToResultHeader",
+      "outcome": "passed",
+      "seconds": 21.546,
+      "run": "regression.xcresult"
+    },
+    {
+      "test": "ScreenTranslateUITests.TranslationPolishUITests/testLongReadingReachesLastParagraphWithoutBottomActionBar",
+      "outcome": "passed",
+      "seconds": 21.649,
+      "run": "regression.xcresult"
+    },
+    {
+      "test": "ScreenTranslateUITests.TranslationReviewUITests/testFailureAndClosingDraftRetainPreviousTranslation",
+      "outcome": "passed",
+      "seconds": 47.436,
+      "run": "regression.xcresult"
+    },
+    {
+      "test": "ScreenTranslateUITests.TranslationReviewUITests/testParagraphImageReviewEditsOneBlockAndHistoryReflectsChange",
+      "outcome": "passed",
+      "seconds": 66.146,
+      "run": "regression.xcresult"
+    },
+    {
+      "test": "ScreenTranslateUITests.TranslationReviewUITests/testTableReviewKeepsCellsAndOtherRows",
+      "outcome": "passed",
+      "seconds": 45.132,
+      "run": "regression.xcresult"
+    },
+    {
+      "test": "ScreenTranslateUITests.Release110UITests/testCopyClearAndPasteUsesClipboardText",
+      "outcome": "passed",
+      "seconds": 15.788,
+      "run": "scroll-fix.xcresult"
+    },
+    {
+      "test": "ScreenTranslateUITests.ScreenTranslateUITests/testAuthenticationFailureIsVisibleAndRetryRemainsAvailable",
+      "outcome": "passed",
+      "seconds": 25.355,
+      "run": "final.xcresult"
+    },
+    {
+      "test": "ScreenTranslateUITests.ScreenTranslateUITests/testProfessionalScreenshotHasTypedLayoutAndRequestsFreshRetranslation",
+      "outcome": "passed",
+      "seconds": 21.95,
+      "run": "final.xcresult"
+    },
+    {
+      "test": "ScreenTranslateUITests.ScreenTranslateUITests/testUncertainOCRCanRetryInVisualMode",
+      "outcome": "passed",
+      "seconds": 20.434,
+      "run": "final.xcresult"
+    },
+    {
+      "test": "ScreenTranslateUITests.ScreenTranslateUITests/testVisualModeShowsDisclosureAndProducesSeparateOverview",
+      "outcome": "passed",
+      "seconds": 14.156,
+      "run": "final.xcresult"
+    }
+  ],
+  "physicalDeviceTest": "Paused as previously requested",
+  "externalTranslationAPIs": "Not called; isolated URLProtocol fixtures used",
+  "frameworksExercised": [
+    "Vision OCR/cropping",
+    "WebKit full reader, ruby toggle and 320pt layout",
+    "UIPasteControl clipboard text copy-clear-paste"
+  ],
+  "notTested": [
+    "physical camera capture",
+    "physical Action Button/Quick Look host",
+    "on-device language downloads and Apple Translation output",
+    "external model translation quality"
+  ],
+  "package": {
+    "file": "Screenreader-iOS-v1.2.1-build25-unsigned.ipa",
+    "version": "1.2.1",
+    "build": "25",
+    "bundleIdentifier": "com.raydon.ScreenTranslate",
+    "bundleName": "Screenreader",
+    "cameraUsageDescription": "拍摄需要翻译的文字或图片；确认照片后立即开始翻译。",
+    "internalPromptPreview": "Removed",
+    "localizedDisplayNames": {
+      "en": "Screenreader",
+      "zh-Hans": "读屏"
+    },
+    "minimumOSVersion": "18.0",
+    "platform": "iphoneos",
+    "architecture": "arm64",
+    "signature": "Unsigned: codesign confirms all bundled Mach-O objects are not signed",
+    "embeddedProvisioningProfile": false,
+    "debugAndSimulationCode": "Excluded",
+    "debugSymbolsAndLocalBuildPaths": "Stripped and verified absent",
+    "appIntents": [
+      "TranslateScreenshotDocumentIntent",
+      "TranslateScreenshotIntent",
+      "TranslateTextIntent"
+    ],
+    "zipCRC": "Valid",
+    "bytes": 2778225,
+    "sha256": "0280c322090da63e51b89603367b7dd83f260874c7e4b2a5b40bc8afcd6b6aca"
+  },
+  "releaseBuildLog": "work/interaction-polish/release-distribution.log",
+  "sourceHashes": {
+    "ScreenTranslate/Core/APIClient.swift": "9d2ca67e2c6eee23b845064d577f76edc13b9113c97cc3855e7bb14e2fd17cfa",
+    "ScreenTranslate/Core/Appearance.swift": "a85492c743cf595bee7222cc180a611b224ad30f5e99f1526c15aa88a881dbfa",
+    "ScreenTranslate/Core/JapaneseFurigana.swift": "3495c93e613dd235224cd80549270b6d8ad0caade2443ebd991be455028b366e",
+    "ScreenTranslate/Core/LocalTranslationPlan.swift": "e2c8ac55d3398a42cd979cc0735428012892d81f1b6b7deb018c6d0bcd31d3fe",
+    "ScreenTranslate/Core/OCRCurrencyReview.swift": "51d332eaa9438a6df99c6bed10d844cea5cdce8d67c3be68ce41c336d6e5dd9e",
+    "ScreenTranslate/Core/OCRDateReview.swift": "36ccdcd9619d9b18d2532d10af5fafd87f0c945de3fd44cdf2f341d1b9742d22",
+    "ScreenTranslate/Core/OCRFieldReview.swift": "1a7854feb34be521c29666011e41257e2e0fae4ea728bd77cb9af1ef8703f133",
+    "ScreenTranslate/Core/OCRLayout.swift": "14ca517575fe24085ddcbf08a1f47e1567cc97b231cb16c8747332496276f759",
+    "ScreenTranslate/Core/OCRRefinementPolicy.swift": "62a60165346771f332e69a4777873bfaa53acbcdfc91e9ca9d1ef99159843c93",
+    "ScreenTranslate/Core/OCRReview.swift": "a06f09e1a1dec9473a93b85c88715b30e79c3c45b042c5b0f28e853e19f66025",
+    "ScreenTranslate/Core/OCRScriptReview.swift": "1a0cd1a071fc606722bbd4f732264e4cd1927fec7c94ad0bf63bf984350d4d45",
+    "ScreenTranslate/Core/OCRTableLayout.swift": "58a27747a580889a32d84d0720e88afd57cbae521252b59267bfd57485e93ef3",
+    "ScreenTranslate/Core/ProfessionalLayout.swift": "0a81883759fa226603ce525af48f64b67feb9a877b0e3d2a9bfe04bfd714ed93",
+    "ScreenTranslate/Core/ReadingBlock.swift": "b8b1bb70d45ecfafbffa027bbe17803176234ae9725f22d416fd3bdc5b808d4c",
+    "ScreenTranslate/Core/TranslationCache.swift": "3b3e95ce3912cbc56bbe46c7d7ebe871190549f55c0a1e030ab63ff0a9f102f8",
+    "ScreenTranslate/Core/TranslationFormatting.swift": "1dc1829ad7ee91e83b24ddeb18983881d1b7fb95e5cbcdacc9e036c74c576b5c",
+    "ScreenTranslate/Core/TranslationModels.swift": "22e9fa28621f5f4e8c33941cd6953590d5ca25e844565699d2345a5490e5d918",
+    "ScreenTranslate/Core/TranslationPrompts.swift": "759e836e61cce36e46aa2f35636b1cbd613b5a8c92588b88e3b316ae83aed5af",
+    "ScreenTranslate/Core/TranslationReview.swift": "c86e10b0dce84a3e11e5edefc644da12c1fb64dbf54e36a02f0c01f0aa493de3",
+    "ScreenTranslate/Core/VisualReadingLayout.swift": "de1986a9c5a51f26adcbff34575ce2a001b6e106954b06a5c714fe5f01efc6c1",
+    "ScreenTranslate/Intents/TranslationIntents.swift": "85dce0bda2b1a353af52fe16842aafc6e586895a73a741bac92a804867639917",
+    "ScreenTranslate/Intents/TranslationSnippetView.swift": "1760cd1a71dbd8c330d6fd76f72ecec563614b7f8f2e6cd541888ce4deb05bc8",
+    "ScreenTranslate/ScreenTranslateApp.swift": "bc1bef7a975e2d0c3101f41f2719ab661fa4a14f9400ee19e31d4684ea99032c",
+    "ScreenTranslate/Services/ClipboardInput.swift": "5888ee5a882256ce6cac92c236b443c1ecb2fad2ed544785fc6b695799d19549",
+    "ScreenTranslate/Services/DebugFixtures.swift": "d1cca22a6e081b317368906a8a08bbee0e5d903c27b9d4e6acfebc8c8281d9aa",
+    "ScreenTranslate/Services/ImagePreparation.swift": "ab3693db707d0aae11668bbacce352e06852826cc391478bd413e8d5b39ad26e",
+    "ScreenTranslate/Services/KeychainStore.swift": "90757ed89ea4abc10b7ebbed9b2ee2a28f8fe0b6e84c10a5a14eb2b8bb6a5134",
+    "ScreenTranslate/Services/OCRCache.swift": "42bd45000f5a6416af8382eaaf8883236b6ca912638827220f10bb7d61c3e87b",
+    "ScreenTranslate/Services/OCRService.swift": "265b9049056387f2f55b241d2295304404dac1dce2a95e4cc079afe814282aac",
+    "ScreenTranslate/Services/SettingsStore.swift": "55bf5a01a4637606bce3325463a6035db04d6056cbcb2bda8be6f54186c7252c",
+    "ScreenTranslate/Services/SourceImageCrop.swift": "865970a957206c05a5794a9c0290fd7a288ee468b512c1920944898617ee6f7e",
+    "ScreenTranslate/Services/TranslationDocument.swift": "a0f3cdb25ec5aa81426cc42aea074727738a4e901ac01d0b841e7597574095a7",
+    "ScreenTranslate/Services/TranslationPipeline.swift": "54da53c1cf76a27bf1bb23fe2fb1bd8910d891123666adc15c87bcd59ad97ba0",
+    "ScreenTranslate/Services/VerticalOCR.swift": "98bbdd72d9f6cb9b3b53cc6b718e38ccd3b453bcf5e742debd341ed08f799714",
+    "ScreenTranslate/Views/AppearanceSettingsView.swift": "4e55a5acc0197b35923e9af27e6c80e57dc90fcee9efdf5268860c0dec476e27",
+    "ScreenTranslate/Views/CameraCaptureView.swift": "ae126f2a4e3da90e7324c436f4792ae4614e6ca267f291fcd60a24186c1f24a0",
+    "ScreenTranslate/Views/Components.swift": "035ecc1c0390cabd6cd42fca5e802808ec44b4965b34cfb6f802beaee7fa91d4",
+    "ScreenTranslate/Views/JapaneseTranslationText.swift": "f6c11ba434d0c55fd9edf5a9ab010c0bdb1e0849eefd6dacfde59ab6ce878032",
+    "ScreenTranslate/Views/LanguagePacksView.swift": "7840e4dc0b558ccd28f228c2bb378903bbc578221cca7eb9b0086c64a83dea49",
+    "ScreenTranslate/Views/ModelSelectionView.swift": "f7d09a818c694d5bd75a411b40555b65fb4b144b6575c444014eae44c0ea8d10",
+    "ScreenTranslate/Views/OCRReviewView.swift": "11aaf31a6fc8f55d19d6bf7aecb227c81069b20e900e10af988d79521af136fa",
+    "ScreenTranslate/Views/PromptSettingsView.swift": "a0a00bed6edcb24fd7069b3d10b51615e37bf1884c3fe1bc28e59e06bb6e3d84",
+    "ScreenTranslate/Views/ReaderSettingsView.swift": "4e6b4e479bea715e65dcb5cf350bc3b5bdd80997d6bc92beecff88dc64acf53c",
+    "ScreenTranslate/Views/SettingsView.swift": "1ac92759dd4846fc00252fea3bc979ca58c5bd25a6db675de77fbad5398c2676",
+    "ScreenTranslate/Views/ShortcutGuideView.swift": "f049f15fb56961f10d66ea00e74b9e59848f8bbf55f68f936077e1eb40baea4c",
+    "ScreenTranslate/Views/SystemTranslationView.swift": "e1b866bec814cfac3094783b8b1b3ca5b2f86562bf7bf1f4e11a301c60c8aba5",
+    "ScreenTranslate/Views/TranslationBlockReviewView.swift": "d54c1ff618fbb3d4de420a056b3acffa2331978f0eb0a60b602d59f4f7434f04",
+    "ScreenTranslate/Views/TranslationTableView.swift": "f1f44d1602a0464e50d49df2dbf9eed1ffce8ea3905fc185b3f88ecb156c11b9",
+    "ScreenTranslate/Views/TranslationView.swift": "f9301d18502e64c6b7100bab83f1b967da67a9d166e8b71f7ab7f53b269844a6",
+    "ScreenTranslate/Views/TranslationViewModel.swift": "206a164e788b302985169afa3a9b4eefff4e8ee4188e7d55aee11b970715685a",
+    "ScreenTranslate/Views/UsageGuideView.swift": "af16b9235ee6869b1127eae1069f074ae6507161c4e82726d3ba57f572458fb0"
+  }
+}

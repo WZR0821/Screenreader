@@ -67,7 +67,7 @@ for name, sources, product_type in [
             settings.update({'INFOPLIST_FILE': 'ScreenTranslate/Info.plist', 'GENERATE_INFOPLIST_FILE': 'NO',
                              'ASSETCATALOG_COMPILER_APPICON_NAME': 'AppIcon',
                              'ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME': 'AccentColor',
-                             'MARKETING_VERSION': '1.0.0', 'CURRENT_PROJECT_VERSION': '17',
+                             'MARKETING_VERSION': '1.3.0', 'CURRENT_PROJECT_VERSION': '27',
                              'LD_RUNPATH_SEARCH_PATHS': '$(inherited) @executable_path/Frameworks'})
         elif name == 'ScreenTranslateTests':
             settings.update({'TEST_HOST': '$(BUILT_PRODUCTS_DIR)/ScreenTranslate.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ScreenTranslate',

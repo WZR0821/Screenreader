@@ -166,7 +166,7 @@ final class ReadabilityIntegrationTests: XCTestCase {
         XCTAssertEqual(result.imageMode, .visual)
         XCTAssertEqual(result.translated, "画面大意：纯蓝色画面。")
         XCTAssertEqual(counter.value, 1)
-        XCTAssertNotNil(result.recognitionSeconds)
+        XCTAssertNotNil(result.preparationSeconds) // Image preparation includes the optional OCR reference.
         XCTAssertEqual(result.visualOCR, false); XCTAssertTrue(result.original.isEmpty)
         XCTAssertFalse(String(decoding: TranslationDocument.html(result), as: UTF8.self).contains("<details"))
         XCTAssertNotNil(result.requestSeconds)

@@ -22,10 +22,11 @@ app = Path(staging.name) / args.app.name
 shutil.copytree(args.app.resolve(), app, symlinks=True)
 info = plistlib.loads((app / 'Info.plist').read_bytes())
 assert info['DTPlatformName'] == 'iphoneos', 'A device build is required'
-assert info['CFBundleShortVersionString'] == '1.0.0'
-assert info['CFBundleVersion'] == '17'
+assert info['CFBundleShortVersionString'] == '1.3.0'
+assert info['CFBundleVersion'] == '27'
 assert info['CFBundleDisplayName'] == '读屏'
 assert info['CFBundleName'] == 'Screenreader'
+assert info.get('NSCameraUsageDescription'), 'Camera privacy description is required'
 localized_names = {}
 for locale, expected in [('en', 'Screenreader'), ('zh-Hans', '读屏')]:
     strings = app / (locale + '.lproj') / 'InfoPlist.strings'
@@ -56,7 +57,8 @@ for binary in unsigned_objects:
     result = subprocess.run(['/usr/bin/codesign', '-dv', str(binary)], capture_output=True, text=True)
     assert result.returncode != 0 and 'not signed at all' in result.stderr, result.stderr
 binary = executable.read_bytes()
-for marker in [b'fixture.invalid', b'ui-test-key', b'--ui-test', b'--fixture-image', b'--fixture-long', b'--fixture-askmode', b'--fixture-reader', b'--fixture-layout', b'--fixture-uncertain', b'--fixture-history', b'--fixture-japanese', b'DebugFixtures', b'SimulateActionButtonIntent', b'SimulatorActionButtonView', b'SimulatorScreenshot', b'demo-key', b'DATE_REVIEW']:
+assert '预览模型指令'.encode('utf-8') not in binary, 'Internal prompt preview must not be exposed'
+for marker in [b'fixture.invalid', b'ui-test-key', b'--ui-test', b'--fixture-image', b'--fixture-vertical', b'--fixture-long', b'--fixture-askmode', b'--fixture-reader', b'--fixture-layout', b'--fixture-uncertain', b'--fixture-history', b'--fixture-japanese', b'--fixture-furigana', b'--fixture-dark', b'--fixture-delayed', b'--fixture-retry-error', b'--fixture-review-table', b'--fixture-review-error', b'REVIEW_FAIL', b'DebugFixtures', b'SimulateActionButtonIntent', b'SimulatorActionButtonView', b'SimulatorScreenshot', b'demo-key', b'DATE_REVIEW']:
     assert marker not in binary, marker
 metadata = json.loads((app / 'Metadata.appintents/extract.actionsdata').read_text())
 assert set(metadata['actions']) == {'TranslateScreenshotIntent', 'TranslateTextIntent', 'TranslateScreenshotDocumentIntent'}
@@ -87,6 +89,8 @@ report = {
     'build': info['CFBundleVersion'],
     'bundleIdentifier': info['CFBundleIdentifier'],
     'bundleName': info['CFBundleName'],
+    'cameraUsageDescription': info['NSCameraUsageDescription'],
+    'internalPromptPreview': 'Removed',
     'localizedDisplayNames': localized_names,
     'minimumOSVersion': info['MinimumOSVersion'],
     'platform': info['DTPlatformName'],

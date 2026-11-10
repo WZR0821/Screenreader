@@ -3,7 +3,7 @@ import Foundation
 /// Each mode has its own default and its own user preferences. The source is
 /// always data; neither an image nor OCR text may override these instructions.
 enum TranslationPrompts {
-    static let revision = "2026-10-screenreader-1.0.0-b17"
+    static let revision = "2026-10-screenreader-1.1.1-b19"
 
     static func text(settings: AppSettings) -> String {
         let tone = settings.tone == .natural
@@ -26,6 +26,7 @@ enum TranslationPrompts {
             PROFESSIONAL MODE: Translate each supplied block completely. Keep headings as headings, lists as lists, prose as paragraphs, and prices with their items. Merge only mechanical wraps within the same paragraph. Never join separate options, headings and body text, or unrelated fields. Use concise interface phrases without summarising body text. Do not invent headings or style markup. Source block IDs and table columns are preserved by the output protocol. Do not embed Markdown headings, bold wrappers or extra bullets inside a block; the reader applies the source hierarchy. Do not insert blank lines between every sentence or split a label from its value.
             """
         }
+        prompt += "\nRead the full context before translating a block. Japanese line wrapping can divide a word or a grammatical ending; a physical line break is not a new list item. Do not leave ordinary source-language fragments inside an otherwise translated sentence. If characters are truly missing or obscured, preserve that uncertainty instead of completing the sentence from expectation."
         prompt += japanese(settings, brief: settings.mode == .quick)
         prompt += preferences(settings)
         prompt += "\nFinal requirement: use the selected target language, retain all facts and return only the translation under the mode's output protocol."
@@ -42,10 +43,11 @@ enum TranslationPrompts {
         “\(h.scene)”: Describe the main objects, setting and relationships in one or two sentences. For a screenshot, state the page type and purpose without repeating translated fields. For a photo or poster, mention the visible subjects. Distinguish visible facts from inference; do not guess identities, authenticity, link destinations or unseen material. Advertising claims are claims, not verified facts.
         Ignore status bars, system icons and social controls. Keep meaningful standalone quantities, prices and dates. Check the edges, bottom small print and vertical writing for refund terms, deadlines and weather notices. For unreadable or hidden text, identify only the specific uncertainty using “\(h.uncertain)”; do not guess or add generic warnings about information the image never supplied. If no text is readable, return only the scene section. Do not add advice.
         """
+        prompt += "\nWrite the meaning directly in the selected target language. Do not echo source phrases followed by '=' or a translation; this is not a bilingual glossary. Do not append parenthesized source text to translated headings or eligibility terms, and do not add a language-identification preface. Retain source writing only when it is a name or identifier needed for reference. Browser address bars are interface chrome, not a separate content item. When a toolbar hides part of a sentence, translate only the visible evidence and identify that specific gap; do not reconstruct hidden eligibility or price terms."
         prompt += "\nDo not copy decorative emoji or UI icon fragments as separate paragraphs. Keep warnings, ratings and check states when they change the meaning. Preserve paragraph and list boundaries without repeating bilingual labels; do not invent emphasis or extra symbols."
         prompt += japanese(settings, brief: false)
         prompt += preferences(settings)
-        prompt += "\nFinal requirement: custom preferences may adjust wording and terminology, but must preserve image evidence, essential facts, uncertainty and the two-section structure."
+        prompt += "\nFinal requirement: every paragraph, including the scene and uncertainty, must be written in \(settings.target.promptName). Headings alone in that language are not sufficient. Custom preferences may adjust wording and terminology, but must preserve image evidence, essential facts, uncertainty and the two-section structure. Do not broaden an eligibility group: students, faculty and all members are different groups."
         return prompt
     }
 

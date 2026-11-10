@@ -1,7 +1,17 @@
 import Foundation
 
-struct OCRTextBox: Equatable {
+struct OCRTextBox: Codable, Equatable, Sendable {
     var x: Double; var y: Double; var width: Double; var height: Double
+
+    var isValid: Bool {
+        [x, y, width, height].allSatisfy(\.isFinite) && width > 0 && height > 0
+    }
+
+    func union(_ other: OCRTextBox) -> OCRTextBox {
+        let left = min(x, other.x), bottom = min(y, other.y)
+        return .init(x: left, y: bottom, width: max(x + width, other.x + other.width) - left,
+                     height: max(y + height, other.y + other.height) - bottom)
+    }
 }
 
 struct RecognizedLine: Equatable {
@@ -13,17 +23,27 @@ struct RecognizedLine: Equatable {
     var confidence: Float
     var dateBox: OCRTextBox? = nil
     var currencyBox: OCRTextBox? = nil
+    var scriptBox: OCRTextBox? = nil
     var glyphEm: Double? = nil
     var readingKind: ReadingBlock.Kind? = nil
+    var vertical: Bool = false
+    var alternatives: [String] = []
+    var cellBoxes: [OCRTextBox]? = nil
+    var box: OCRTextBox { .init(x: x, y: y, width: width, height: height) }
 }
 
 enum OCRLayout {
     static func readableLines(_ lines: [RecognizedLine], aspectRatio: Double) -> [RecognizedLine] {
         let phoneShape = (1.7...2.5).contains(aspectRatio)
         let clock = lines.first { line in
-            line.x < 0.4 && line.y > 0.93 && line.text.range(
-                of: #"^\s*[0-2]?[0-9][:：][0-5][0-9](?:\s*[1IlAa！!])?\s*$"#,
+            guard line.x < 0.4 && line.y > 0.93 else { return false }
+            let plain = line.text.range(of: #"^\s*(?:[01]?[0-9]|2[0-3])[:：][0-5][0-9]\s*$"#, options: .regularExpression) != nil
+            // The silent-mode icon can be read as 必 or another short glyph.
+            // Require a compact clock box as well as right-hand status evidence.
+            let iconSuffix = line.width < 0.30 && line.height < 0.04 && line.text.range(
+                of: #"^\s*(?:[01]?[0-9]|2[0-3])[:：][0-5][0-9]\s*[1IlAa！!必]{1,2}\s*$"#,
                 options: .regularExpression) != nil
+            return plain || iconSuffix
         }
         let hasStatusBar = phoneShape && ((clock != nil && lines.contains {
             $0.x > 0.65 && $0.y > 0.93
@@ -140,7 +160,10 @@ enum OCRLayout {
         var blocks: [ReadingBlock] = []
         var previous: RecognizedLine?
         for (index, line) in ordered.enumerated() {
-            let text = line.text.trimmingCharacters(in: .whitespacesAndNewlines)
+            let bounds = OCRTextBox(x: line.x, y: line.y, width: line.width, height: line.height)
+            let sourceBox: OCRTextBox? = bounds.isValid ? bounds : nil
+            let table = line.readingKind == .tableHeader || line.readingKind == .tableRow
+            let text = line.text.trimmingCharacters(in: table ? .whitespacesAndNewlines.subtracting(CharacterSet(charactersIn: "\t")) : .whitespacesAndNewlines)
             let field = text.range(of: #"(?:価格|价格|数量|合計|总计|Quantity|Price|Total)[：:]|[¥￥$€£]\s*\d|\d[\d,.，．]*\s*(?:円|元|日元|yen|USD|JPY)"#,
                 options: [.regularExpression, .caseInsensitive]) != nil && text.count < 160
             let dateOrTime = text.range(of: #"^(?:\d{4}[/.-]\d{1,2}[/.-]\d{1,2}|(?:(?:OPEN|START|開場|開演)\s*[|｜:：]?\s*)?\d{1,2}[:：]\d{2}(?:\s*[~〜～–-]\s*\d{1,2}[:：]\d{2})?)$"#,
@@ -155,13 +178,16 @@ enum OCRLayout {
                 let gap = abs(line.y - other.y)
                 return text.count <= 90 && other.text.count <= 90
                     && !endsSentence(text) && !endsSentence(other.text)
+                    && !(line.y > other.y ? japaneseWrap(after: line, line: other) : japaneseWrap(after: other, line: line))
                     && !isMetadata(text) && !isMetadata(other.text)
                     && !isAmount(text) && !isAmount(other.text)
                     && abs(line.x - other.x) < 0.05
                     && max(line.height, other.height) / max(0.0001, min(line.height, other.height)) < 1.3
                     && gap > max(line.height, other.height) * 1.6 && gap < max(line.height, other.height) * 8
             }
-            let list = ReadingBlock.isListRow(text) || (!heading && !field && !dateOrTime && (listLike(previous) || listLike(next)))
+            let wrappedProse = previous.map { japaneseWrap(after: $0, line: line) } == true
+                || next.map { japaneseWrap(after: line, line: $0) } == true
+            let list = ReadingBlock.isListRow(text) || (!wrappedProse && !heading && !field && !dateOrTime && (listLike(previous) || listLike(next)))
             let kind: ReadingBlock.Kind = line.readingKind ?? (field || dateOrTime ? .field : (heading ? .heading : (list ? .listItem : .paragraph)))
             if let last = previous, let block = blocks.last {
                 let near = !startsParagraph(after: last, line: line, typicalHeight: typical)
@@ -180,10 +206,11 @@ enum OCRLayout {
                     && !text.unicodeScalars.contains(where: { $0.value >= 0x3040 })
                     && text.rangeOfCharacter(from: .decimalDigits) == nil && !endsSentence(text)
                     && text.count < 50 && abs(line.x - last.x) < 0.1
-                let bilingualHeading = block.kind == .heading && nearCaption && !endsSentence(block.text)
-                    && JapaneseText.kanaCount(block.text) >= 2 && text.count < 50
+                let bilingualHeading = (block.kind == .heading || block.kind == .paragraph) && nearCaption && !endsSentence(block.text)
+                    && block.text.count <= 24 && block.text.range(of: #"[\p{Han}\p{Hiragana}\p{Katakana}]"#, options: .regularExpression) != nil && text.count < 50
                     && text.range(of: #"^[A-Za-z][A-Za-z'’ &/-]+$"#, options: .regularExpression) != nil
-                    && abs(line.x - last.x) < 0.1
+                    && abs(line.x - last.x) < 0.04 && abs(line.width - last.width) < 0.2
+                    && line.height <= last.height * 1.1
                 let trailingPrice = isAmount(text) && text.contains(where: { !$0.isNumber && !$0.isWhitespace })
                     && near && !isAmount(last.text) && (block.kind == .paragraph || block.kind == .listItem)
                 if continuation || wrappedList || bilingualItem || bilingualHeading || trailingPrice {
@@ -199,16 +226,35 @@ enum OCRLayout {
                         blocks[blocks.count - 1].text += trailingPrice ? "\n" + text : (needsSpace(between: block.text, and: text) ? " " : "") + text
                     }
                     if trailingPrice { blocks[blocks.count - 1].kind = .field }
+                    if trailingPrice, let previousBox = block.sourceBox, let sourceBox {
+                        blocks[blocks.count - 1].sourceCellBoxes = [previousBox, sourceBox]
+                    } else if bilingualItem, let sourceBox, let cells = block.sourceCellBoxes, cells.count == 2 {
+                        blocks[blocks.count - 1].sourceCellBoxes = [cells[0].union(sourceBox), cells[1]]
+                    }
+                    if let sourceBox {
+                        blocks[blocks.count - 1].sourceBox = block.sourceBox.map { $0.union(sourceBox) } ?? sourceBox
+                    }
                     previous = line; continue
                 }
             }
-            blocks.append(.init(id: blocks.count + 1, text: text, kind: kind))
+            blocks.append(.init(id: blocks.count + 1, text: text, kind: kind, sourceBox: sourceBox,
+                                sourceVertical: line.vertical ? true : nil, sourceCellBoxes: line.cellBoxes))
             previous = line
         }
         return blocks
     }
 
     private static func orderedLines(_ input: [RecognizedLine]) -> [RecognizedLine] {
+        let vertical = input.filter(\.vertical)
+        if !vertical.isEmpty {
+            // Vertical Japanese: top to bottom within a column, columns right to left.
+            // Keep each detected column intact; never row-join it with horizontal text.
+            let ordered = vertical.sorted { $0.x == $1.x ? $0.y > $1.y : $0.x > $1.x }
+            let horizontal = orderedLines(input.filter { !$0.vertical })
+            let top = vertical.map { $0.y + $0.height }.max() ?? 0
+            let split = horizontal.firstIndex { $0.y + $0.height < top } ?? horizontal.count
+            return Array(horizontal.prefix(split)) + ordered + Array(horizontal.dropFirst(split))
+        }
         let measured = input.filter { !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }.map { line in
             var line = line; line.glyphEm = estimatedEm(line); return line
         }
@@ -234,6 +280,9 @@ enum OCRLayout {
                     || ["必須選択", "必选", "Required", "Optional"].contains(line.text)
                     || (isAmount(line.text) && !isAmount(last.text))) {
                     let requiredLabel = ["必須選択", "必选", "Required", "Optional"].contains(line.text)
+                    if isAmount(line.text), !isAmount(last.text), last.cellBoxes == nil {
+                        last.cellBoxes = [last.box, line.box]
+                    }
                     last.text += (requiredLabel ? "　" : (needsSpace(between: last.text, and: line.text) ? " " : "")) + line.text
                     last.width = max(last.x + last.width, line.x + line.width) - last.x
                     last.confidence = min(last.confidence, line.confidence)
@@ -245,6 +294,9 @@ enum OCRLayout {
     }
 
     private static func startsParagraph(after last: RecognizedLine, line: RecognizedLine, typicalHeight: Double) -> Bool {
+        if last.vertical || line.vertical { return true }
+        if japaneseWrap(after: last, line: line) { return false }
+        if line.text.range(of: #"^(?:[（(]注[）)]|※)"#, options: .regularExpression) != nil { return true }
                 let gap = last.y - (line.y + line.height)
                 let overlap = min(last.x + last.width, line.x + line.width) - max(last.x, line.x)
                 let differentColumn = overlap < min(last.width, line.width) * 0.2
@@ -272,6 +324,23 @@ enum OCRLayout {
         let scriptTransition = endsSentence(last.text)
             && (JapaneseText.kanaCount(last.text) >= 2) != (JapaneseText.kanaCount(line.text) >= 2)
         return isMetadata(last.text) || isMetadata(line.text) || noteBoundary || scriptTransition || structuredRow || containsRows || gap > max(last.height, line.height) * 0.85 || differentColumn || sizeChange || independentShortRow || bilingualLabel
+    }
+
+    private static func japaneseWrap(after last: RecognizedLine, line: RecognizedLine) -> Bool {
+        // Japanese web prose wraps inside words. Font boxes vary between kana,
+        // kanji and linked text, so height alone must not split the sentence.
+        guard !last.vertical, !line.vertical, last.readingKind == nil, line.readingKind == nil,
+              !last.text.contains("\n"), !line.text.contains("\n"),
+              !ReadingBlock.isListRow(last.text), !ReadingBlock.isListRow(line.text),
+              !endsSentence(last.text), last.text.count >= 18, last.width >= 0.5,
+              last.text.range(of: #"[／/]\s*[A-Za-z]"#, options: .regularExpression) == nil,
+              JapaneseText.kanaCount(last.text) >= 2, JapaneseText.kanaCount(line.text) >= 1,
+              line.text.range(of: #"^(?:[（(]注[）)]|※)"#, options: .regularExpression) == nil,
+              abs(last.x - line.x) < 0.04 else { return false }
+        let gap = last.y - (line.y + line.height)
+        let emRatio = max(estimatedEm(last), estimatedEm(line)) / max(0.0001, min(estimatedEm(last), estimatedEm(line)))
+        return gap >= -min(last.height, line.height) * 0.25
+            && gap <= max(last.height, line.height) * 1.2 && emRatio < 1.2
     }
 
     private static func isAmount(_ text: String) -> Bool {
@@ -344,6 +413,7 @@ enum OCRLayout {
             guard !values.isEmpty else { continue }
             var block = label
             block.readingKind = .field
+            block.cellBoxes = [label.box, values.map(\.element.box).reduce(values[0].element.box) { $0.union($1) }]
             if values.count == 1 { block.text += "：" + values[0].element.text }
             else { block.text += "\n" + values.map(\.element.text).joined(separator: "\n") }
             let bottom = min(label.y, values.map(\.element.y).min()!)
@@ -393,6 +463,7 @@ enum OCRLayout {
             }
             guard let label = candidates.first else { continue }
             var block = label.element
+            block.cellBoxes = [label.element.box, amount.box]
             block.text += "：" + amount.text; block.readingKind = .field
             let top = max(block.y + block.height, amount.y + amount.height)
             block.y = min(block.y, amount.y); block.height = top - block.y
@@ -424,6 +495,7 @@ enum OCRLayout {
             }.sorted { $0.element.y < $1.element.y }
             guard let label = labels.first else { continue }
             var block = label.element
+            block.cellBoxes = [label.element.box, amount.box]
             block.text += "：" + amount.text; block.readingKind = .field
             let top = max(block.y + block.height, amount.y + amount.height)
             block.y = min(block.y, amount.y); block.height = top - block.y

@@ -6,6 +6,53 @@ import XCTest
 #endif
 
 final class PreferencesTests: XCTestCase {
+    func testLocalBatchTranslatesRepeatedParagraphOnceAndRestoresEveryOccurrence() throws {
+        let plan = LocalTranslationPlan("\n\nCoffee\n\nTea\n\n\nCoffee\n \nTea\n\n")
+        XCTAssertEqual(plan.requests.map(\.text), ["Coffee", "Tea"])
+        XCTAssertEqual(plan.totalParts, 4)
+        let coffee = plan.requests[0].index, tea = plan.requests[1].index
+        XCTAssertEqual(plan.completedParts(responseIDs: [tea]), 2)
+        XCTAssertEqual(plan.completedParts(responseIDs: [coffee, tea]), 4)
+        XCTAssertEqual(try plan.restored([tea: "茶", coffee: "咖啡"]), "\n\n咖啡\n\n茶\n\n\n咖啡\n \n茶\n\n")
+        XCTAssertThrowsError(try plan.restored([coffee: "咖啡"]))
+        XCTAssertThrowsError(try plan.restored([coffee: "咖啡", tea: " "]))
+        XCTAssertEqual(LocalTranslationPlan("Coffee\n\ncoffee").requests.count, 2, "Case differences may change meaning")
+    }
+
+    func testOlderReaderPreferencesKeepPresetsAndSavedLanguage() throws {
+        let old = Data(#"{"target":"English","reader":{"textSize":"large","spacing":"relaxed","showOriginal":true}}"#.utf8)
+        let value = try JSONDecoder().decode(AppSettings.self, from: old)
+        XCTAssertEqual(value.target, .english)
+        XCTAssertEqual(value.reader.fontSize, 20)
+        XCTAssertEqual(value.reader.lineSpacing, 9)
+        XCTAssertEqual(value.reader.paragraphSpacing, 24)
+        XCTAssertEqual(value.reader.font, .system)
+        XCTAssertFalse(value.reader.emphasized)
+        XCTAssertTrue(value.reader.showOriginal)
+        let missing = try JSONDecoder().decode(AppSettings.self, from: Data(#"{"reader":{}}"#.utf8))
+        XCTAssertEqual(missing.target, .simplifiedChinese)
+        XCTAssertEqual(missing.reader, ReaderPreferences())
+    }
+
+    func testCustomTypographySurvivesReloadAndBoundsUnsafeValues() throws {
+        var value = AppSettings()
+        value.reader = .init(font: .serif, emphasized: true, customFontSize: 23, customLineSpacing: 7, customParagraphSpacing: 19)
+        XCTAssertEqual(try JSONDecoder().decode(AppSettings.self, from: JSONEncoder().encode(value)), value)
+        XCTAssertEqual(value.reader.fontSize, 23)
+        XCTAssertEqual(value.reader.lineSpacing, 7)
+        XCTAssertEqual(value.reader.paragraphSpacing, 19)
+        let invalid = Data(#"{"reader":{"font":"unknown","customFontSize":1000,"customLineSpacing":-10,"customParagraphSpacing":1000}}"#.utf8)
+        let normalized = try JSONDecoder().decode(AppSettings.self, from: invalid).reader
+        XCTAssertEqual(normalized.font, .system)
+        XCTAssertEqual(normalized.fontSize, 30)
+        XCTAssertEqual(normalized.lineSpacing, 0)
+        XCTAssertEqual(normalized.paragraphSpacing, 36)
+        value.reader.customFontSize = .infinity; value.reader.customLineSpacing = .nan
+        value.normalizePreferences()
+        XCTAssertNil(value.reader.customFontSize); XCTAssertNil(value.reader.customLineSpacing)
+        XCTAssertNoThrow(try JSONEncoder().encode(value))
+    }
+
     func testSystemServiceNormalizesUnavailableModesAndAsking() throws {
         for mode in TranslationMode.allCases {
             var value = AppSettings(); value.translationService = .system; value.mode = mode; value.askModeInShortcuts = true
@@ -41,8 +88,8 @@ final class PreferencesTests: XCTestCase {
     func testEveryPaletteAndExtremeCustomColorHasReadableContrast() {
         let colors = AccentTheme.allCases.map(\.color) + [.hex(0), .hex(0xffffff), .hex(0xffff00), .hex(0x00ff00), .hex(0x777777)]
         for dark in [false, true] {
-            let anchor = ThemeRGB.hex(dark ? 0x2C2C2E : 0xF1F0EC)
-            let backgrounds = dark ? [0x171715, 0x2C2C2E] : [0xFAF9F7, 0xF1F0EC, 0xffffff]
+            let anchor = ThemeRGB.hex(dark ? 0x2C2C2E : 0xF2F2F7)
+            let backgrounds = dark ? [0x000000, 0x1C1C1E, 0x2C2C2E] : [0xF2F2F7, 0xffffff]
             for color in colors {
                 let adapted = color.accessible(on: anchor)
                 for background in backgrounds { XCTAssertGreaterThanOrEqual(adapted.contrast(with: .hex(background)), 4.5) }

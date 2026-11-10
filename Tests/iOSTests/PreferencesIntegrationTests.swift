@@ -23,6 +23,23 @@ final class PreferencesIntegrationTests: XCTestCase {
         TranslationResult(original: "Original \(number)", translated: "译文 \(number)", sourceLanguages: "英语", target: "中文", engine: "fixture", elapsed: 0.1)
     }
 
+    func testCustomReaderPersistsAndAppliesToParagraphListAndTableDocument() throws {
+        let first = store()
+        var settings = first.settings
+        settings.reader = .init(showOriginal: true, font: .serif, emphasized: true,
+            customFontSize: 26, customLineSpacing: 13, customParagraphSpacing: 21)
+        try first.save(settings, keys: [:])
+        XCTAssertEqual(store().settings.reader, settings.reader)
+        var value = result(1)
+        value.blocks = [.init(id: 1, text: "正文", kind: .paragraph), .init(id: 2, text: "项目", kind: .listItem),
+            .init(id: 3, text: "咖啡\t450", kind: .tableRow)]
+        let html = String(decoding: TranslationDocument.html(value, settings: store().settings), as: UTF8.self)
+        XCTAssertTrue(html.contains("font:26.0px/1.8"))
+        XCTAssertTrue(html.contains("ui-serif")); XCTAssertTrue(html.contains("font-weight:500"))
+        XCTAssertTrue(html.contains("margin:0 0 21.0px"))
+        XCTAssertTrue(html.contains("<li>项目</li>")); XCTAssertTrue(html.contains("<td>咖啡</td><td>450</td>"))
+    }
+
     func testLegacyResultMigratesThenKeepsMultipleResultsAcrossStores() throws {
         let legacy = result(0)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)

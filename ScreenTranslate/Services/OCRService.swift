@@ -14,19 +14,39 @@ struct OCRResult {
     var blocks: [ReadingBlock] = []
     var refinementAttempts: Int = 0
     var recoveredLineCount: Int = 0
+    var lines: [RecognizedLine] = []
+    var reviewItems: [OCRReviewItem] = []
+    var recognitionSeconds: TimeInterval = 0
+    var refinementSeconds: TimeInterval = 0
+    var usedCache = false
+
+    func reviewing(_ corrections: [Int: String]) -> OCRResult {
+        var value = self
+        for (index, text) in corrections where value.lines.indices.contains(index) {
+            let clean = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !clean.isEmpty else { continue }
+            value.lines[index].text = clean
+            value.reviewItems.removeAll { $0.id == index }
+        }
+        value.text = OCRLayout.assemble(value.lines)
+        value.blocks = OCRLayout.readingBlocks(value.lines)
+        value.lowConfidence = !value.reviewItems.isEmpty || !OCRFieldReview.regions(in: value.lines).isEmpty
+        return value
+    }
 }
 
 struct OCRService {
-    func recognize(_ data: Data, source: SourceLanguage = .automatic, customWords: [String] = [], cleanScreenText: Bool = true, mode: TranslationMode = .professional) async throws -> OCRResult {
+    func recognize(_ data: Data, source: SourceLanguage = .automatic, customWords: [String] = [], cleanScreenText: Bool = true, mode: TranslationMode = .professional, direction: OCRTextDirection = .automatic) async throws -> OCRResult {
         guard data.count <= 25 * 1_024 * 1_024 else { throw TranslationError.imageTooLarge }
         // Vision is synchronous; keep it off the UI and App Intent presentation thread.
-        let worker = Task.detached(priority: .userInitiated) { try Self.recognizeSynchronously(data, source: source, customWords: customWords, cleanScreenText: cleanScreenText, mode: mode) }
+        let worker = Task.detached(priority: .userInitiated) { try Self.recognizeSynchronously(data, source: source, customWords: customWords, cleanScreenText: cleanScreenText, mode: mode, direction: direction) }
         return try await withTaskCancellationHandler {
             try await worker.value
         } onCancel: { worker.cancel() }
     }
 
-    static func recognizeSynchronously(_ data: Data, source language: SourceLanguage = .automatic, customWords: [String] = [], cleanScreenText: Bool = true, mode: TranslationMode = .professional) throws -> OCRResult {
+    static func recognizeSynchronously(_ data: Data, source language: SourceLanguage = .automatic, customWords: [String] = [], cleanScreenText: Bool = true, mode: TranslationMode = .professional, direction: OCRTextDirection = .automatic) throws -> OCRResult {
+        let started = ProcessInfo.processInfo.systemUptime
         try Task.checkCancellation()
         let japaneseWords = language == .japanese || language == .automatic ? JapaneseText.recognitionWords : []
         // User terminology has priority. These are exact Japanese UI/menu terms,
@@ -91,11 +111,40 @@ struct OCRService {
                         y: (Double(image.height - offset - count) + amount.minY * Double(count)) / Double(image.height),
                         width: amount.width, height: amount.height * Double(count) / Double(image.height))
                 }
+                if let range = OCRScriptReview.bilingualRange(in: candidate.string), let observation = try? candidate.boundingBox(for: range) {
+                    let script = observation.boundingBox
+                    line.scriptBox = OCRTextBox(x: script.minX,
+                        y: (Double(image.height - offset - count) + script.minY * Double(count)) / Double(image.height),
+                        width: script.width, height: script.height * Double(count) / Double(image.height))
+                }
+                line.alternatives = observation.topCandidates(3).map(\.string)
                 lines.append(line)
             }
             if offset + count == image.height { break }
             offset += tileHeight - overlap
         }
+        if direction != .horizontal && (direction == .vertical || language == .japanese || language == .automatic) {
+            let vertical = try VerticalOCR.recognize(image, forced: direction == .vertical,
+                limit: mode == .quick ? 4 : 16)
+            if !vertical.isEmpty {
+                lines.removeAll { line in
+                    let overlap = vertical.reduce(0.0) { total, column in
+                        let w = max(0, min(line.x + line.width, column.x + column.width) - max(line.x, column.x))
+                        let h = max(0, min(line.y + line.height, column.y + column.height) - max(line.y, column.y))
+                        return total + w * h
+                    }
+                    return overlap / max(0.000001, line.width * line.height) > 0.55
+                }
+                lines.append(contentsOf: vertical)
+            }
+        }
+        let recognitionSeconds = ProcessInfo.processInfo.systemUptime - started
+        let refinementStarted = ProcessInfo.processInfo.systemUptime
+        // Limit general retries by elapsed time. Up to four visibly broken
+        // dates, scripts or currency glyphs get two pixel readings even when a
+        // slow device exhausts that soft budget; each crop is separately capped.
+        // Every remaining first-pass line stays available for manual review.
+        let refinementBudget = mode == .quick ? 0.8 : min(4, max(1.5, recognitionSeconds * 0.8))
         let rawText = OCRLayout.assemble(lines)
         var attempts = 0, recovered = 0
         let japaneseContext = language == .japanese || (language == .automatic && lines.filter { JapaneseText.kanaCount($0.text) >= 2 }.count >= 2)
@@ -103,8 +152,32 @@ struct OCRService {
         // field. Professional mode reviews at most eight local regions overall.
         if mode == .professional || mode == .quick {
             var reviewedFieldIndices = Set<Int>()
+            var reviewedLineIndices = Set<Int>()
+            func reviewLine(_ index: Int) throws {
+                try Task.checkCancellation()
+                attempts += 1; reviewedLineIndices.insert(index)
+                do {
+                    if let improved = try refine(lines[index], image: image, language: language, customWords: recognitionWords, japaneseContext: japaneseContext) {
+                        lines[index] = improved; recovered += 1
+                    }
+                } catch is CancellationError { throw CancellationError() }
+                catch { /* An optional retry must not discard successful first-pass OCR. */ }
+            }
+            // A slow missing-field probe must not consume the whole budget before
+            // an obviously broken deadline or script gets its first review.
+            let critical = lines.indices.filter { mode == .professional && !lines[$0].vertical
+                && OCRRefinementPolicy.priority(lines[$0], in: lines, japaneseContext: japaneseContext) < 3 }
+                .sorted {
+                    let lhs = OCRRefinementPolicy.priority(lines[$0], in: lines, japaneseContext: japaneseContext)
+                    let rhs = OCRRefinementPolicy.priority(lines[$1], in: lines, japaneseContext: japaneseContext)
+                    return lhs == rhs ? $0 < $1 : lhs < rhs
+                }
+            for index in critical.prefix(4) {
+                try reviewLine(index)
+            }
             for box in OCRFieldReview.regions(in: lines).prefix(mode == .quick ? 1 : 2) {
                 try Task.checkCancellation()
+                guard ProcessInfo.processInfo.systemUptime - refinementStarted < refinementBudget else { break }
                 attempts += 1
                 do {
                     if let value = try recoverField(box, image: image, language: language, customWords: recognitionWords, japaneseContext: japaneseContext) {
@@ -114,36 +187,31 @@ struct OCRService {
                 } catch is CancellationError { throw CancellationError() }
                 catch { /* Empty or unrecognisable fields remain empty. */ }
             }
-            let candidates = lines.indices.filter { mode == .professional && !reviewedFieldIndices.contains($0)
+            let candidates = lines.indices.filter { mode == .professional && !lines[$0].vertical && !reviewedFieldIndices.contains($0) && !reviewedLineIndices.contains($0)
                 && (OCRRefinementPolicy.needsReview(lines[$0], imageHeight: image.height)
                     || OCRCurrencyReview.needsReview(lines[$0], in: lines)
                     || (japaneseContext && OCRScriptReview.needsReview(lines[$0].text))) }
                 .sorted {
-                    let lc = OCRCurrencyReview.needsReview(lines[$0], in: lines), rc = OCRCurrencyReview.needsReview(lines[$1], in: lines)
-                    if lc != rc { return lc }
-                    let lhs = japaneseContext && OCRScriptReview.needsReview(lines[$0].text), rhs = japaneseContext && OCRScriptReview.needsReview(lines[$1].text)
-                    return lhs != rhs ? lhs : lines[$0].confidence < lines[$1].confidence
+                    let lhs = OCRRefinementPolicy.priority(lines[$0], in: lines, japaneseContext: japaneseContext)
+                    let rhs = OCRRefinementPolicy.priority(lines[$1], in: lines, japaneseContext: japaneseContext)
+                    return lhs != rhs ? lhs < rhs : lines[$0].confidence < lines[$1].confidence
                 }.prefix(8 - attempts)
             for index in candidates {
                 try Task.checkCancellation()
-                attempts += 1
-                do {
-                    if let improved = try refine(lines[index], image: image, language: language, customWords: recognitionWords, japaneseContext: japaneseContext) {
-                        lines[index] = improved; recovered += 1
-                    }
-                } catch is CancellationError { throw CancellationError() }
-                catch { /* An optional retry must not discard successful first-pass OCR. */ }
+                guard ProcessInfo.processInfo.systemUptime - refinementStarted < refinementBudget else { break }
+                try reviewLine(index)
             }
         }
         let selected = cleanScreenText ? OCRLayout.readableLines(lines, aspectRatio: Double(image.height) / Double(image.width)) : lines
         let text = OCRLayout.assemble(selected)
         guard !text.isEmpty else { throw TranslationError.noText }
+        let reviews = OCRReview.items(selected, imageWidth: image.width, imageHeight: image.height, japanese: japaneseContext)
         return OCRResult(text: text, languages: language == .automatic ? LanguageDetector.describe(text) : language.title,
-                         lowConfidence: !OCRFieldReview.regions(in: selected).isEmpty || selected.contains { $0.confidence < 0.55 || OCRDateReview.range(in: $0.text) != nil
-                             || OCRCurrencyReview.needsReview($0, in: selected)
-                             || (japaneseContext && OCRScriptReview.needsReview($0.text)) }, rawText: rawText,
+                         lowConfidence: !OCRFieldReview.regions(in: selected).isEmpty || !reviews.isEmpty, rawText: rawText,
                          filteredLineCount: lines.count - selected.count, blocks: OCRLayout.readingBlocks(selected),
-                         refinementAttempts: attempts, recoveredLineCount: recovered)
+                         refinementAttempts: attempts, recoveredLineCount: recovered, lines: selected, reviewItems: reviews,
+                         recognitionSeconds: recognitionSeconds,
+                         refinementSeconds: ProcessInfo.processInfo.systemUptime - refinementStarted)
     }
 
     private static func recoverField(_ box: OCRTextBox, image: CGImage, language: SourceLanguage,
@@ -215,6 +283,19 @@ struct OCRService {
         let rect = bounds.insetBy(dx: -max(6, bounds.height * 0.25), dy: -max(4, bounds.height * 0.35))
             .intersection(CGRect(x: 0, y: 0, width: w, height: h)).integral
         guard let crop = image.cropping(to: rect) else { return nil }
+        if japaneseContext, let box = line.scriptBox, let range = OCRScriptReview.bilingualRange(in: line.text) {
+            let scriptBounds = CGRect(x: box.x * w, y: (1 - box.y - box.height) * h, width: box.width * w, height: box.height * h)
+            let scriptRect = scriptBounds.insetBy(dx: -max(4, scriptBounds.height * 0.15), dy: -max(4, scriptBounds.height * 0.3))
+                .intersection(CGRect(x: 0, y: 0, width: w, height: h)).integral
+            if let scriptCrop = image.cropping(to: scriptRect), scriptCrop.width * 3 <= 2_400,
+               let first = try readJapanese(scriptCrop, scale: 2), let second = try readJapanese(scriptCrop, scale: 3),
+               let value = OCRScriptReview.replacement(original: line.text,
+                    first: line.text.replacingCharacters(in: range, with: first.text),
+                    second: line.text.replacingCharacters(in: range, with: second.text)) {
+                var reviewed = line; reviewed.text = value; reviewed.confidence = min(first.confidence, second.confidence)
+                return reviewed
+            }
+        }
         if let box = line.currencyBox {
             let amountBounds = CGRect(x: box.x * w, y: (1 - box.y - box.height) * h, width: box.width * w, height: box.height * h)
             let amountRect = amountBounds.insetBy(dx: -max(5, amountBounds.height * 0.25), dy: -max(4, amountBounds.height * 0.4))

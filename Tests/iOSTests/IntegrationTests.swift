@@ -70,7 +70,8 @@ final class OCRIntegrationTests: XCTestCase {
             let messages = body["messages"] as! [[String: String]]
             XCTAssertTrue(messages[1]["content"]!.contains("Hello"))
             XCTAssertTrue(messages[1]["content"]!.contains("世界"))
-            return (200, Data(#"{"choices":[{"message":{"content":"你好，世界。订单号 12345。"}}]}"#.utf8))
+            return try imageLayoutResponse(request) { $0.replacingOccurrences(of: "Hello, world!", with: "你好，世界！")
+                .replacingOccurrences(of: "こんにちは、世界。", with: "你好，世界。").replacingOccurrences(of: "Order", with: "订单") }
         }
         var settings = AppSettings()
         settings.provider = .custom
@@ -78,7 +79,8 @@ final class OCRIntegrationTests: XCTestCase {
         settings.configuration.model = "fixture-model"
         let pipeline = TranslationPipeline(client: APIClient(session: session))
         let result = try await pipeline.image(Self.fixtureImage(), settings: settings, key: "fixture-key")
-        XCTAssertEqual(result.translated, "你好，世界。订单号 12345。")
+        XCTAssertTrue(result.translated.contains("你好，世界")); XCTAssertTrue(result.translated.contains("12345"))
+        XCTAssertFalse(ImageTranslationLayout.items(in: result).isEmpty)
         XCTAssertTrue(result.original.contains("12345"))
         XCTAssertGreaterThan(result.elapsed, 0)
     }
@@ -135,14 +137,15 @@ final class PersistenceIntegrationTests: XCTestCase {
         let config = URLSessionConfiguration.ephemeral; config.protocolClasses = [StubURLProtocol.self]
         let session = URLSession(configuration: config)
         defer { session.invalidateAndCancel(); StubURLProtocol.registry.set(nil) }
-        StubURLProtocol.registry.set { _ in (200, Data(#"{"choices":[{"message":{"content":"你好，世界。"}}]}"#.utf8)) }
+        StubURLProtocol.registry.set { request in try imageLayoutResponse(request) { "你好，世界。" + $0 } }
         let model = TranslationViewModel(store: store, pipeline: TranslationPipeline(client: APIClient(session: session)))
         try model.acceptImage(OCRIntegrationTests.fixtureImage())
         model.translate()
         for _ in 0..<100 where model.busy { try await Task.sleep(nanoseconds: 100_000_000) }
         XCTAssertEqual(model.phase, .idle)
         XCTAssertTrue(model.text.contains("Hello"))
-        XCTAssertEqual(model.result?.translated, "你好，世界。")
+        XCTAssertTrue(model.result?.translated.contains("你好，世界。") == true)
+        XCTAssertFalse(model.result.map { ImageTranslationLayout.items(in: $0).isEmpty } ?? true)
         XCTAssertNil(model.error)
         model.modeChanged()
         XCTAssertTrue(model.text.isEmpty, "Switching mode must re-recognize automatic OCR at the new quality")
@@ -193,20 +196,21 @@ final class PersistenceIntegrationTests: XCTestCase {
         let config = URLSessionConfiguration.ephemeral; config.protocolClasses = [StubURLProtocol.self]
         let session = URLSession(configuration: config)
         defer { session.invalidateAndCancel() }
-        let fullTranslation = String(repeating: "完整译文。", count: 500)
+        let fullTranslation = String(repeating: "Complete translated paragraph. ", count: 100)
         StubURLProtocol.registry.set { request in
             let body = try JSONSerialization.jsonObject(with: requestBody(request)) as! [String: Any]
             let prompt = (body["messages"] as! [[String: String]])[0]["content"]!
             XCTAssertTrue(prompt.contains("The source language is Japanese"))
             XCTAssertTrue(prompt.contains("Translate every part into English"))
-            return (200, try JSONSerialization.data(withJSONObject: ["choices": [["message": ["content": fullTranslation]]]]))
+            return try imageLayoutResponse(request) { fullTranslation + $0 }
         }
         let pipeline = TranslationPipeline(client: APIClient(session: session))
         let (result, saved) = try await IntentTranslationWork.image(OCRIntegrationTests.fixtureImage(), store: store, pipeline: pipeline)
-        XCTAssertEqual(result.translated, fullTranslation)
+        XCTAssertTrue(result.translated.contains(fullTranslation))
+        XCTAssertTrue(result.translated.contains("12345"))
         XCTAssertEqual(result.sourceLanguages, "日语")
         XCTAssertEqual(result.target, "英语")
-        XCTAssertEqual(store.recentResult?.translated, fullTranslation)
+        XCTAssertEqual(store.recentResult?.translated, result.translated)
         XCTAssertTrue(saved)
     }
 

@@ -1,2 +1,3 @@
 "CFBundleDisplayName" = "读屏";
 "CFBundleName" = "Screenreader";
+"NSCameraUsageDescription" = "拍摄需要翻译的文字或图片；确认照片后立即开始翻译。";

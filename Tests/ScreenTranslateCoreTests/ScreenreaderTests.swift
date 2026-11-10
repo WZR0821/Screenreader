@@ -146,9 +146,9 @@ final class ScreenreaderTests: XCTestCase {
 }
 
 final class RefinementTests: XCTestCase {
-    func testFreshInstallAndAbsentPreferencesDefaultToEnglishDeepSeek() throws {
+    func testFreshInstallAndAbsentPreferencesDefaultToChineseDeepSeek() throws {
         for settings in [AppSettings(), try JSONDecoder().decode(AppSettings.self, from: Data("{}".utf8))] {
-            XCTAssertEqual(settings.target, .english)
+            XCTAssertEqual(settings.target, .simplifiedChinese)
             XCTAssertEqual(settings.provider, .deepSeek)
             XCTAssertEqual(settings.configuration.model, "deepseek-flash")
             XCTAssertEqual(settings.configuration.baseURL, "https://api.deepseek.com")
@@ -162,7 +162,7 @@ final class RefinementTests: XCTestCase {
         XCTAssertEqual(settings.configuration.model, "my-model")
     }
     func testChineseInterfaceLabelsDoNotLeakIntoEnglishModelInstructions() throws {
-        var settings = AppSettings(); settings.source = .japanese
+        var settings = AppSettings(); settings.source = .japanese; settings.target = .english
         XCTAssertEqual(settings.source.title, "日语"); XCTAssertEqual(settings.target.title, "英语")
         for mode in TranslationMode.allCases {
             settings.mode = mode

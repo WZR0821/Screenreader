@@ -1,12 +1,9 @@
 import SwiftUI
 
 enum Theme {
-    static let canvas = dynamic(light: 0xFAF9F7, dark: 0x171715)
-    static let background = dynamic(light: 0xF1F0EC, dark: 0x171715)
+    static let canvas = Color(uiColor: .systemBackground)
+    static let background = Color(uiColor: .systemGroupedBackground)
     static let card = Color(uiColor: .secondarySystemGroupedBackground)
-    private static func dynamic(light: Int, dark: Int) -> Color {
-        Color(uiColor: UIColor { UIColor(rgb: .hex($0.userInterfaceStyle == .dark ? dark : light)) })
-    }
 }
 
 extension UIColor {
@@ -20,7 +17,7 @@ struct AppTheme {
     var settings = AppSettings()
     private func color(dark: Bool) -> ThemeRGB {
         let source = settings.accentTheme == .custom ? settings.customAccent : settings.accentTheme.color
-        return source.accessible(on: .hex(dark ? 0x2C2C2E : 0xF1F0EC))
+        return source.accessible(on: .hex(dark ? 0x2C2C2E : 0xF2F2F7))
     }
     var accent: Color { Color(uiColor: UIColor { UIColor(rgb: color(dark: $0.userInterfaceStyle == .dark)) }) }
     var onAccent: Color { Color(uiColor: UIColor { UIColor(rgb: color(dark: $0.userInterfaceStyle == .dark).foreground) }) }
@@ -32,6 +29,13 @@ struct AppTheme {
 private struct AppThemeKey: EnvironmentKey { static let defaultValue = AppTheme() }
 extension EnvironmentValues {
     var appTheme: AppTheme { get { self[AppThemeKey.self] } set { self[AppThemeKey.self] = newValue } }
+}
+
+extension View {
+    func readerSheet() -> some View {
+        presentationDetents([.large]).presentationDragIndicator(.visible)
+            .presentationCornerRadius(28).presentationBackground(Theme.background)
+    }
 }
 
 struct Surface<Content: View>: View {
@@ -61,57 +65,102 @@ struct ResultContent: View {
     @Environment(\.appTheme) private var theme
     @ScaledMetric(relativeTo: .body) private var textScale = 1.0
     @State private var originalExpanded = false
+    @State private var showInformation = false
+    @State private var copied = false
+    @State private var copyCount = 0
+    @State private var showsImageTranslation = true
     var result: TranslationResult
+    var store: SettingsStore? = nil
+    var compactHeading = false
+    var isWorking = false
+    var onRetranslate: (() -> Void)? = nil
+    var onReviewBlock: ((Int) -> Void)? = nil
+    var sourceImageData: Data? = nil
+    private var hasImageTranslation: Bool { sourceImageData != nil && !ImageTranslationLayout.items(in: result).isEmpty }
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack {
-                Text("\(result.mode?.title ?? (result.imageMode == .visual ? "识图" : "翻译")) · \(result.target)").font(.caption.weight(.medium)).foregroundStyle(.secondary)
-                Spacer()
-                Button { UIPasteboard.general.string = result.translated } label: {
-                    Image(systemName: "doc.on.doc").frame(width: 44, height: 44)
-                }.accessibilityLabel("复制译文").accessibilityIdentifier("copyTranslation")
-                ShareLink(item: result.translated) { Image(systemName: "square.and.arrow.up").frame(width: 44, height: 44) }
-                    .accessibilityLabel("分享译文")
-            }.foregroundStyle(.secondary).buttonStyle(.plain)
+            HStack(spacing: 2) {
+                Text(compactHeading ? result.target : "译文").font(.subheadline.weight(.semibold))
+                if !compactHeading { Text(result.target).font(.caption).foregroundStyle(.secondary).padding(.leading, 6) }
+                Spacer(minLength: 4)
+                if JapaneseFurigana.isJapanese(target: result.target), let store {
+                    FuriganaToggleButton(store: store)
+                }
+                Button {
+                    UIPasteboard.general.string = result.translated; copied = true; copyCount += 1
+                } label: {
+                    Image(systemName: copied ? "checkmark" : "doc.on.doc").font(.system(size: 16)).frame(width: 44, height: 44)
+                }.foregroundStyle(copied ? theme.accent : Color.secondary)
+                    .accessibilityLabel("复制译文").accessibilityValue(copied ? "已复制" : "")
+                    .accessibilityIdentifier("copyTranslation").sensoryFeedback(.success, trigger: copyCount)
+                Menu {
+                    ShareLink(item: result.translated) { Label("分享译文", systemImage: "square.and.arrow.up") }
+                    Button { showInformation = true } label: { Label("翻译信息", systemImage: "info.circle") }
+                        .accessibilityIdentifier("showTranslationInformation")
+                    if let onRetranslate {
+                        Button(action: onRetranslate) { Label("重新翻译", systemImage: "arrow.clockwise") }
+                            .disabled(isWorking)
+                            .accessibilityIdentifier("retranslateResult")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis").font(.system(size: 16)).frame(width: 44, height: 44)
+                }.foregroundStyle(.secondary).accessibilityLabel("更多译文操作").accessibilityIdentifier("translationActions")
+            }.buttonStyle(.plain).tint(.secondary)
+                .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("translationResultHeader")
             if let warning = result.warning {
                 Label(warning, systemImage: "exclamationmark.triangle")
                     .font(.caption).foregroundStyle(.orange)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            VStack(alignment: .leading, spacing: theme.settings.reader.spacing.paragraph) {
-                ForEach(Array((result.blocks ?? ReadingBlock.plainText(result.translated)).enumerated()), id: \.offset) { index, block in
+            if hasImageTranslation {
+                Picker("译文显示方式", selection: $showsImageTranslation) {
+                    Text("原图直译").tag(true)
+                    Text("阅读").tag(false)
+                }.pickerStyle(.segmented).accessibilityIdentifier("translationPresentationPicker")
+            }
+            if hasImageTranslation, showsImageTranslation, let sourceImageData {
+                ImageTranslationView(data: sourceImageData, result: result, isWorking: isWorking) { onReviewBlock?($0) }
+            } else {
+            VStack(alignment: .leading, spacing: theme.settings.reader.paragraphSpacing) {
+                ForEach(Array(readingGroups.enumerated()), id: \.offset) { groupIndex, group in
+                    let index = readingGroups.prefix(groupIndex).reduce(0) { $0 + $1.count }
+                    let block = group[0]
+                    if block.tableCells != nil {
+                        TranslationTableView(blocks: group, firstIndex: index,
+                            reader: theme.settings.reader, textScale: textScale, target: result.target, onReviewBlock: onReviewBlock, isWorking: isWorking,
+                            reviewableIDs: Set(group.filter { TranslationReview.canReview(result, blockID: $0.id) }.map(\.id)))
+                    } else {
+                    HStack(alignment: .top, spacing: 10) {
                     Group {
-                        if let cells = block.tableCells {
-                            HStack(alignment: .firstTextBaseline, spacing: 10) {
-                                ForEach(Array(cells.enumerated()), id: \.offset) { cellIndex, value in
-                                    Text(value).fontWeight(block.kind == .tableHeader ? .semibold : .regular)
-                                        .frame(maxWidth: .infinity, alignment: cellIndex == cells.count - 1 ? .trailing : .leading)
-                                        .multilineTextAlignment(cellIndex == cells.count - 1 ? .trailing : .leading)
-                                }
-                            }.padding(.vertical, 5).accessibilityElement(children: .combine)
-                                .accessibilityLabel(cells.joined(separator: "，"))
-                                .accessibilityIdentifier(index == 0 ? "translationResult" : "translationParagraph-\(index)")
-                        } else if let field = block.fieldParts {
+                        if let field = block.fieldParts {
                             HStack(alignment: .firstTextBaseline, spacing: 16) {
-                                Text(field.label)
+                                translatedText(field.label, block: block)
                                 Spacer(minLength: 0)
-                                Text(field.value).fontWeight(.medium).multilineTextAlignment(.trailing)
+                                translatedText(field.value, block: block, alignment: .right)
                             }.accessibilityElement(children: .combine)
                                 .accessibilityLabel(block.text)
                                 .accessibilityIdentifier(index == 0 ? "translationResult" : "translationParagraph-\(index)")
                         } else {
                             HStack(alignment: .firstTextBaseline, spacing: 9) {
                                 if block.kind == .listItem && !block.hasVisibleListMarker { Text("•").foregroundStyle(.secondary) }
-                                Text(block.kind == .listItem ? block.listText : block.text)
+                                translatedText(block.kind == .listItem ? block.listText : block.text, block: block)
                                     .accessibilityAddTraits(block.kind == .heading ? .isHeader : [])
                                     .accessibilityIdentifier(index == 0 ? "translationResult" : "translationParagraph-\(index)")
                             }
                         }
-                    }.font(.system(size: (theme.settings.reader.textSize.points + (block.kind == .heading ? 3 : 0)) * textScale,
-                        weight: block.kind == .heading ? .semibold : .regular))
-                        .lineSpacing(theme.settings.reader.spacing.line).textSelection(.enabled)
+                    }.font(theme.settings.reader.displayFont(scale: textScale, heading: block.kind == .heading))
+                        .lineSpacing(theme.settings.reader.lineSpacing * textScale).textSelection(.enabled)
                         .lineLimit(nil).fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                    if let onReviewBlock, TranslationReview.canReview(result, blockID: block.id) {
+                        TranslationReviewButton(block: block) { onReviewBlock(block.id) }
+                            .disabled(isWorking)
+                    }
+                    }
+                    }
                 }
             }
             if !result.original.isEmpty && ((result.mode != .visual && result.imageMode != .visual) || result.visualOCR == true) {
@@ -125,20 +174,87 @@ struct ResultContent: View {
                             .fixedSize(horizontal: false, vertical: true).padding(.top, 8)
                     }.padding(.top, 8)
                 }
-              }
+              }.font(.caption).foregroundStyle(.secondary).padding(.top, 2)
             }
-            HStack {
-                Text(result.engine).lineLimit(1)
-                if result.usedCache == true { Text("复用译文") }
-                Text(String(format: "%.1f s", result.elapsed))
-
-            }.font(.caption2.monospacedDigit()).foregroundStyle(.secondary)
+            }
+            if hasReviews {
+                Text("已局部重译 · \((result.blocks ?? []).filter { $0.reviewEngine != nil }.count) 段")
+                    .font(.caption).foregroundStyle(.secondary).accessibilityIdentifier("translationReviewSummary")
+            }
         }
         .onAppear { originalExpanded = theme.settings.reader.showOriginal }
         .onChange(of: theme.settings.reader.showOriginal) { _, value in originalExpanded = value }
-        .onChange(of: result.id) { _, _ in originalExpanded = theme.settings.reader.showOriginal }
+        .onChange(of: result.id) { _, _ in originalExpanded = theme.settings.reader.showOriginal; copied = false; showsImageTranslation = true }
+        .task(id: copyCount) {
+            guard copyCount > 0 else { return }
+            try? await Task.sleep(for: .seconds(2))
+            guard !Task.isCancelled else { return }
+            copied = false
+        }
+        .sheet(isPresented: $showInformation) {
+            TranslationInformationView(result: result)
+                .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+                .presentationCornerRadius(28).presentationBackground(Theme.background)
+        }
     }
 
+    private func translatedText(_ text: String, block: ReadingBlock, alignment: NSTextAlignment = .natural) -> some View {
+        JapaneseTranslationText(text: text, target: result.target, reader: theme.settings.reader,
+            textScale: textScale, heading: block.kind == .heading, medium: alignment == .right, alignment: alignment)
+    }
+    private var hasReviews: Bool { result.blocks?.contains { $0.reviewEngine != nil } == true }
+    private var readingGroups: [[ReadingBlock]] {
+        var groups: [[ReadingBlock]] = []
+        for block in result.blocks ?? ReadingBlock.plainText(result.translated) {
+            if block.kind == .tableRow, groups.last?.last?.tableCells != nil { groups[groups.count - 1].append(block) }
+            else { groups.append([block]) }
+        }
+        return groups
+    }
+
+}
+
+private struct TranslationInformationView: View {
+    @Environment(\.dismiss) private var dismiss
+    let result: TranslationResult
+    private var hasReviews: Bool { result.blocks?.contains { $0.reviewEngine != nil } == true }
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("翻译") {
+                    LabeledContent("目标语言", value: result.target)
+                    LabeledContent("模式", value: result.mode?.title ?? "翻译")
+                    LabeledContent(hasReviews ? "初次翻译引擎" : "引擎", value: result.engine)
+                    if result.usedCache == true { Label("复用译文", systemImage: "checkmark.circle") }
+                }
+                Section(hasReviews ? "初次翻译耗时" : "耗时") {
+                    if let seconds = result.preparationSeconds { LabeledContent("图片／语言准备", value: duration(seconds)) }
+                    if let seconds = result.recognitionSeconds {
+                        LabeledContent("本机识字", value: duration(max(0, seconds - (result.refinementSeconds ?? 0))))
+                    }
+                    if let seconds = result.refinementSeconds { LabeledContent("局部复核", value: duration(seconds)) }
+                    if let seconds = result.requestSeconds { LabeledContent(result.usedCache == true ? "读取缓存" : "翻译", value: duration(seconds)) }
+                    LabeledContent("本次总计", value: duration(result.elapsed))
+                }.accessibilityIdentifier("translationTimings")
+                if let warning = result.warning { Section("提示") { Text(warning).font(.subheadline) } }
+            }.navigationTitle("翻译信息").navigationBarTitleDisplayMode(.inline)
+                .toolbar { ToolbarItem(placement: .confirmationAction) { Button("完成") { dismiss() } } }
+        }
+    }
+    private func duration(_ seconds: TimeInterval) -> String { String(format: "%.2f 秒", seconds) }
+}
+
+struct TranslationReviewButton: View {
+    let block: ReadingBlock
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Label(block.reviewEngine == nil ? "核对" : "已核对", systemImage: block.reviewEngine == nil ? "text.magnifyingglass" : "checkmark.circle")
+                .font(.caption).frame(minHeight: 44)
+        }.buttonStyle(.plain).foregroundStyle(.secondary)
+            .accessibilityLabel("核对第\(block.id)\(block.tableCells == nil ? "段" : "行")译文")
+            .accessibilityIdentifier("reviewTranslationBlock-\(block.id)")
+    }
 }
 
 struct RecentResultView: View {
@@ -162,9 +278,7 @@ struct RecentResultView: View {
                     Section(day.formatted(.dateTime.month().day())) {
                         ForEach(filtered.filter { Calendar.current.isDate($0.date, inSameDayAs: day) }) { result in
                             NavigationLink {
-                                ScrollView { ResultContent(result: result).padding(24) }
-                                    .accessibilityIdentifier("recentResultScroll")
-                                    .background(Theme.canvas).navigationTitle("翻译").navigationBarTitleDisplayMode(.inline)
+                                RecentResultDetailView(store: store, resultID: result.id)
                             } label: {
                                 VStack(alignment: .leading, spacing: 8) {
                                     Text(result.translated).font(.body).lineLimit(2)
@@ -192,11 +306,11 @@ struct RecentResultView: View {
             }
             .searchable(text: $query, prompt: "搜索原文或译文")
             .scrollContentBackground(.hidden).background(Theme.background).navigationTitle("翻译记录").navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(Theme.canvas, for: .navigationBar).toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) { Button("完成") { dismiss() } }
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .confirmationAction) { Button("完成") { dismiss() } }
+                ToolbarItem(placement: .topBarLeading) {
                     Button("清空", role: .destructive) { confirmClear = true }.disabled(store.history.isEmpty)
+                        .tint(.red)
                 }
             }
             .confirmationDialog("清空全部翻译记录？", isPresented: $confirmClear, titleVisibility: .visible) {
@@ -205,5 +319,30 @@ struct RecentResultView: View {
                 }
             } message: { Text("清空后无法恢复。") }
         }
+    }
+}
+
+struct RecentResultDetailView: View {
+    @ObservedObject var store: SettingsStore
+    let resultID: UUID
+    @State private var review: TranslationReviewSelection?
+    private var result: TranslationResult? { store.history.first { $0.id == resultID } }
+    var body: some View {
+        ScrollView {
+            if let result {
+                ResultContent(result: result, store: store, compactHeading: true,
+                    onReviewBlock: { review = .init(result: result, blockID: $0) })
+                    .padding(.horizontal, 20).padding(.vertical, 16)
+            } else {
+                ContentUnavailableView("这条记录已删除", systemImage: "clock")
+            }
+        }.accessibilityIdentifier("recentResultScroll")
+            .background(Theme.canvas).navigationTitle("译文").navigationBarTitleDisplayMode(.inline)
+            .environment(\.appTheme, AppTheme(settings: store.settings))
+            .sheet(item: $review) { selection in
+                TranslationBlockReviewView(selection: selection, imageData: nil, store: store) { expected, updated in
+                    guard try store.replaceRecordedResult(expected, with: updated) else { throw TranslationError.reviewConflict }
+                }.readerSheet()
+            }
     }
 }

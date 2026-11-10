@@ -53,8 +53,7 @@ struct TranslateScreenshotIntent: AppIntent {
                            view: TranslationSnippetView(result: final, error: nil, saved: saved, legacyScreenshot: true))
         } catch is CancellationError { throw CancellationError() }
         catch {
-            return .result(value: "", view: TranslationSnippetView(result: nil,
-                error: error.localizedDescription, saved: false))
+            throw IntentTranslationWork.displayError(error)
         }
     }
 }
@@ -78,15 +77,14 @@ struct TranslateTextIntent: AppIntent {
                            view: TranslationSnippetView(result: final, error: nil, saved: saved))
         } catch is CancellationError { throw CancellationError() }
         catch {
-            return .result(value: "", view: TranslationSnippetView(result: nil,
-                error: error.localizedDescription, saved: false))
+            throw IntentTranslationWork.displayError(error)
         }
     }
 }
 
 struct TranslateScreenshotDocumentIntent: AppIntent {
     static let title: LocalizedStringResource = "翻译截图全文"
-    static let description = IntentDescription("将截图翻译为完整文档。在此操作后添加“快速查看”，即可滚动阅读。")
+    static let description = IntentDescription("在截图原位置显示译文，可切换阅读并点按核对。在此操作后添加“快速查看”。")
     static let openAppWhenRun = false
     static let authenticationPolicy: IntentAuthenticationPolicy = .requiresAuthentication
 
@@ -96,12 +94,20 @@ struct TranslateScreenshotDocumentIntent: AppIntent {
     static var parameterSummary: some ParameterSummary { Summary("翻译\(\.$image)全文") }
 
     func perform() async throws -> some IntentResult & ReturnsValue<IntentFile> {
-        let store = await SettingsStore.shared
-        let chosen = try await ShortcutTranslationMode.resolve(mode, parameter: $mode, store: store)
-        let (result, _) = try await IntentTranslationWork.image(image.data, store: store, mode: chosen)
-        let settings = await store.settings
-        let data = TranslationDocument.html(result, settings: settings)
-        return .result(value: IntentFile(data: data, filename: "Screenreader.html", type: .html))
+        do {
+            let store = await SettingsStore.shared
+            let chosen = try await ShortcutTranslationMode.resolve(mode, parameter: $mode, store: store)
+            let (result, _) = try await IntentTranslationWork.image(image.data, store: store, mode: chosen)
+            let settings = await store.settings
+            let prepared = ImageTranslationLayout.items(in: result).isEmpty ? nil
+                : await Task.detached(priority: .userInitiated) { SourceImagePresentation.prepare(image.data) }.value
+            try Task.checkCancellation()
+            let data = TranslationDocument.html(result, settings: settings, image: prepared)
+            return .result(value: IntentFile(data: data, filename: "Screenreader.html", type: .html))
+        } catch is CancellationError { throw CancellationError() }
+        catch {
+            throw IntentTranslationWork.displayError(error)
+        }
     }
 }
 
@@ -113,13 +119,20 @@ struct ScreenTranslateShortcuts: AppShortcutsProvider {
 }
 
 enum IntentTranslationWork {
+    static func displayError(_ error: Error) -> NSError {
+        // Stop the shortcut with a readable error instead of sending an empty
+        // success value to Quick Look, Copy, or another downstream action.
+        NSError(domain: "Screenreader.Translation", code: 1,
+                userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+    }
+
     static func image(_ data: Data, store: SettingsStore,
                       pipeline: TranslationPipeline = TranslationPipeline(), mode: TranslationMode? = nil) async throws -> (TranslationResult, Bool) {
         let savedMode = await store.settings.mode
         let chosen = mode ?? savedMode
         let (settings, key) = try await store.credentials(for: chosen)
         let result = try await pipeline.image(data, settings: settings, key: key)
-        return await record(result, store: store)
+        return try await record(result, store: store)
     }
 
     static func text(_ text: String, store: SettingsStore,
@@ -128,10 +141,11 @@ enum IntentTranslationWork {
         let chosen = mode ?? savedMode
         let (settings, key) = try await store.credentials(for: chosen)
         let result = try await pipeline.text(text, settings: settings, key: key)
-        return await record(result, store: store)
+        return try await record(result, store: store)
     }
 
-    @MainActor private static func record(_ result: TranslationResult, store: SettingsStore) -> (TranslationResult, Bool) {
+    @MainActor private static func record(_ result: TranslationResult, store: SettingsStore) throws -> (TranslationResult, Bool) {
+        try Task.checkCancellation()
         var result = result
         var saved = store.settings.saveRecentResult
         do { try store.record(result) }

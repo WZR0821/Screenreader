@@ -1,2 +1,3 @@
 "CFBundleDisplayName" = "Screenreader";
 "CFBundleName" = "Screenreader";
+"NSCameraUsageDescription" = "Take a photo of text or an image to translate. Translation starts after you confirm the photo.";

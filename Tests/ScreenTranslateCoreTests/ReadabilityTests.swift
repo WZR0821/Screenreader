@@ -180,7 +180,10 @@ final class ImageRequestTests: XCTestCase {
                 if provider == .custom { settings.configuration.baseURL = "https://mock.test"; settings.configuration.model = "gpt-6-luna" }
                 StubURLProtocol.registry.set { request in
                     let root = try JSONSerialization.jsonObject(with: requestBody(request)) as! [String: Any]
-                    if provider == .deepSeek && fast { XCTAssertEqual((root["thinking"] as? [String: String])?["type"], "disabled") }
+                    if provider == .deepSeek {
+                        XCTAssertEqual((root["thinking"] as? [String: String])?["type"], fast ? "disabled" : "enabled")
+                        XCTAssertEqual(root["reasoning_effort"] as? String, fast ? nil : "low")
+                    }
                     else { XCTAssertNil(root["thinking"]) }
                     if provider == .openAI && fast { XCTAssertEqual((root["reasoning"] as? [String: String])?["effort"], "none") }
                     else { XCTAssertNil(root["reasoning"]) }

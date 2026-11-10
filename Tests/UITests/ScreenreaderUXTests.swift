@@ -6,17 +6,16 @@ final class ScreenreaderUXTests: XCTestCase {
         continueAfterFailure = false
         app = XCUIApplication(); app.launchArguments = ["--ui-test"]; app.launch()
     }
-    @MainActor func testSettingsOverviewFillsOneScreenWithoutScrolling() {
+    @MainActor func testNativeSettingsSectionsAndCreditRemainReachable() {
         launch(); app.tabBars.buttons["设置"].tap()
-        let ids = ["basicSettingsLink", "apiSettingsLink", "promptSettingsLink", "displaySettingsLink", "dataSettingsLink", "fullScreenShortcutLink", "usageGuideLink"]
+        let ids = ["basicSettingsLink", "displaySettingsLink", "apiSettingsLink", "promptSettingsLink", "dataSettingsLink", "fullScreenShortcutLink", "usageGuideLink"]
         XCTAssertTrue(app.buttons[ids[0]].waitForExistence(timeout: 5))
-        for id in ids { XCTAssertTrue(app.buttons[id].isHittable, "\(id) must be visible without scrolling") }
+        XCTAssertTrue(app.descendants(matching: .any)["settingsAccessibleScroll"].exists)
+        for id in ids { app.revealForNavigation(app.buttons[id]); XCTAssertTrue(app.buttons[id].isHittable) }
+        app.revealForNavigation(app.staticTexts["developerCredit"])
         XCTAssertTrue(app.staticTexts["developerCredit"].isHittable)
-        XCTAssertFalse(app.scrollViews["settingsAccessibleScroll"].exists)
-        let before = app.buttons["usageGuideLink"].frame
-        app.swipeUp()
-        XCTAssertEqual(app.buttons["usageGuideLink"].frame, before, "Standard settings overview should not scroll")
-        attach("Screenreader-settings-one-screen")
+        XCTAssertEqual(app.staticTexts["developerCredit"].label, "Jerry Wong")
+        attach("1.2.1-settings-sections-and-credit")
     }
 
     @MainActor func testThreePromptDraftsSaveSeparatelyAndResetOnlySelectedMode() {
@@ -57,6 +56,8 @@ final class ScreenreaderUXTests: XCTestCase {
         app.buttons["sourceLanguagePicker"].tap(); app.buttons["英语"].tap()
         app.buttons["targetLanguagePicker"].tap(); app.buttons["日语"].tap()
         for _ in 0..<5 { app.buttons["swapLanguagesButton"].tap() }
+        XCTAssertEqual(app.buttons["swapLanguagesButton"].frame.width, 44, accuracy: 0.01)
+        XCTAssertEqual(app.buttons["swapLanguagesButton"].frame.height, 44, accuracy: 0.01)
         XCTAssertEqual(app.buttons["sourceLanguagePicker"].value as? String, "日语")
         XCTAssertEqual(app.buttons["targetLanguagePicker"].value as? String, "英语")
         app.tabBars.buttons["设置"].tap(); app.buttons["basicSettingsLink"].tap()
@@ -78,18 +79,20 @@ final class ScreenreaderUXTests: XCTestCase {
         attach("Screenreader-data-preferences")
     }
 
-    @MainActor func testFreshInstallUsesChineseUIEnglishTargetAndDeepSeek() {
+    @MainActor func testFreshInstallUsesChineseTargetAndDeepSeek() {
         continueAfterFailure = false
         app = XCUIApplication(); app.launchArguments = ["--ui-test", "--fixture-defaults"]; app.launch()
         XCTAssertTrue(app.tabBars.buttons["翻译"].waitForExistence(timeout: 5))
-        XCTAssertEqual(app.buttons["targetLanguagePicker"].value as? String, "英语")
+        XCTAssertEqual(app.buttons["targetLanguagePicker"].value as? String, "中文")
         XCTAssertEqual(app.buttons["sourceLanguagePicker"].value as? String, "自动识别")
-        attach("build17-Chinese-home-English-target")
+        XCTAssertFalse(app.buttons["swapLanguagesButton"].isEnabled)
+        XCTAssertLessThanOrEqual(app.buttons["sourceLanguagePicker"].frame.height, 48)
+        attach("1.2.0-default-Chinese")
         app.tabBars.buttons["设置"].tap()
         app.buttons["apiSettingsLink"].tap()
         XCTAssertTrue(app.buttons["providerPicker"].label.contains("DeepSeek"))
         XCTAssertTrue(app.buttons["chooseModelButton"].label.contains("deepseek-flash"))
-        attach("build17-default-DeepSeek")
+        attach("1.2.0-default-provider")
     }
 
     @MainActor private func attach(_ name: String) {

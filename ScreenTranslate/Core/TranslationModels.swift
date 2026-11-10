@@ -71,6 +71,7 @@ struct ModelPreset: Identifiable {
 
 enum TargetLanguage: String, Codable, CaseIterable, Identifiable {
     case simplifiedChinese = "简体中文", english = "English", japanese = "日本語"
+    var languageCode: String { self == .simplifiedChinese ? "zh-Hans" : (self == .japanese ? "ja" : "en") }
     var id: String { rawValue }
     var title: String {
         switch self { case .simplifiedChinese: return "中文"; case .english: return "英语"; case .japanese: return "日语" }
@@ -154,7 +155,7 @@ struct AppSettings: Codable, Equatable {
     var provider: AIProvider = .deepSeek
     var configurations: [String: ProviderConfiguration] = [:]
     var source: SourceLanguage = .automatic
-    var target: TargetLanguage = .english
+    var target: TargetLanguage = .simplifiedChinese
     var tone: TranslationTone = .natural
     var glossary: String = ""
     // Keys use stable mode IDs; labels and the app name may change independently.
@@ -189,6 +190,7 @@ struct AppSettings: Codable, Equatable {
         if translationService == .system { mode = .quick; askModeInShortcuts = false }
         if ![10, 30, 100].contains(historyLimit) { historyLimit = 30 }
         customAccent = customAccent.normalized
+        reader.normalize()
         modePrompts = modePrompts.filter { TranslationMode(rawValue: $0.key) != nil && !$0.value.isEmpty }
     }
     // Compatibility for pre-1.6 settings and callers. Mode is the single source of truth.
@@ -218,7 +220,7 @@ struct AppSettings: Codable, Equatable {
         // v1.0 had no source field and offered two additional target languages.
         // Migrate those targets to Chinese while retaining all API configuration.
         let savedTarget = try values.decodeIfPresent(String.self, forKey: .target)
-        target = savedTarget.flatMap(TargetLanguage.init(rawValue:)) ?? (savedTarget == nil ? .english : .simplifiedChinese)
+        target = savedTarget.flatMap(TargetLanguage.init(rawValue:)) ?? .simplifiedChinese
         tone = try values.decodeIfPresent(TranslationTone.self, forKey: .tone) ?? .natural
         glossary = try values.decodeIfPresent(String.self, forKey: .glossary) ?? ""
         let legacyPrompt = try values.decodeIfPresent(String.self, forKey: .customPrompt) ?? ""
@@ -290,6 +292,8 @@ struct TranslationResult: Codable, Equatable, Identifiable {
     var imageMode: ImageTranslationMode? = nil
     var recognitionSeconds: TimeInterval? = nil
     var requestSeconds: TimeInterval? = nil
+    var preparationSeconds: TimeInterval? = nil
+    var refinementSeconds: TimeInterval? = nil
     var rawOCR: String? = nil
     // Only new visual results with actual local OCR may expose an original.
     // Old records containing a workflow explanation keep their original hidden.
@@ -308,10 +312,12 @@ struct TranslationOutput: Equatable, Sendable {
 
 enum TranslationError: LocalizedError, Equatable {
     case missingKey, missingModel, invalidURL, emptyText, tooMuchText, tooMuchGlossary, tooMuchPrompt
-    case invalidImage, imageTooLarge, noText, malformedResponse, emptyResponse, visionUnsupported
+    case invalidImage, imageTooLarge, clipboardImageUnavailable, noText, malformedResponse, emptyResponse, visionUnsupported, unexpectedLanguage
     case http(Int), network, timeout, credentialUnavailable, persistence
     case incompleteLayout, imageRequired, systemUnavailable
     case modeUnavailable, incompleteTranslation
+    case systemLanguageUnsupported, incompleteSystemTranslation
+    case reviewUnavailable, reviewConflict, reviewColumns
 
     var errorDescription: String? {
         switch self {
@@ -323,10 +329,12 @@ enum TranslationError: LocalizedError, Equatable {
         case .tooMuchGlossary: return "术语表过长，请缩短到 4,000 字符以内。"
         case .tooMuchPrompt: return "提示词过长，请缩短到 8,000 字符以内。"
         case .invalidImage: return "无法读取图片，请使用 PNG、JPEG 或 HEIC 格式。"
+        case .clipboardImageUnavailable: return "未能读取剪贴板中的图片，请重新复制图片，或保存到照片后选择。"
         case .imageTooLarge: return "图片过大，请裁剪后重试（文件上限 25 MB）。"
         case .noText: return "没有识别到清晰文字。可以裁剪到文字区域再试，或切换识图模式获取画面大意。"
         case .visionUnsupported: return "当前模型不支持看图。请在 API 设置中选择支持图片输入的模型，或切回快速／专业模式。"
         case .malformedResponse: return "接口返回格式不兼容。请检查接口格式、API 地址和模型名称。"
+        case .unexpectedLanguage: return "模型未按所选目标语言输出，请重试或更换模型。"
         case .emptyResponse: return "模型没有返回译文。请换一个模型，或稍后重试。"
         case .http(let status):
             switch status {
@@ -342,11 +350,16 @@ enum TranslationError: LocalizedError, Equatable {
         case .timeout: return "翻译等待超时。请稍后重试，或选择响应更快的模型。"
         case .credentialUnavailable: return "无法访问安全存储。请解锁手机后重试，或重新保存 API Key。"
         case .persistence: return "无法保存设置或翻译记录，请检查设备的可用空间。"
-        case .incompleteLayout: return "模型没有完整保留各段内容或数字，本次未生成全文。请重试或换一个模型；快速模式不校验段落结构。"
+        case .incompleteLayout: return "译文没有完整对应原文段落或数字，请重试或更换模型。"
         case .imageRequired: return "识图模式需要一张图片。请先选择图片，或切换快速／专业模式翻译文字。"
         case .systemUnavailable: return "系统翻译需在真机的读屏 App 内使用，并按提示下载语言。此处未调用 API，请切换 AI API 后重试。"
+        case .systemLanguageUnsupported: return "此语言组合暂不支持本机翻译。请明确选择原文语言，或更换目标语言。"
+        case .incompleteSystemTranslation: return "系统翻译未返回全部段落，请重试。"
         case .incompleteTranslation: return "AI 服务提前截断了译文，本次未生成全文。请重试或换一个模型。"
         case .modeUnavailable: return "系统翻译仅支持快速模式。请先在设置中将翻译服务切换为 AI API，再使用专业或识图模式。"
+        case .reviewUnavailable: return "这条译文没有对应段落的原文，暂时无法逐段核对。请重新翻译图片，或使用专业模式翻译文字。"
+        case .reviewConflict: return "译文或翻译记录已发生变化，请关闭核对界面后重新打开。"
+        case .reviewColumns: return "请保留表格的列数；每个输入框对应原表的一列。"
         }
     }
 }

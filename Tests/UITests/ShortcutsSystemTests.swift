@@ -28,9 +28,11 @@ final class ShortcutsSystemTests: XCTestCase {
         }
         XCTAssertTrue(addButton.exists)
         addButton.tap()
-        for name in ["替换", "Replace", "添加"] where shortcuts.buttons[name].exists { shortcuts.buttons[name].tap() }
-        if shortcuts.buttons["运行快捷指令"].waitForExistence(timeout: 5) {
-            shortcuts.buttons["运行快捷指令"].tap()
+        let run = shortcuts.buttons["运行快捷指令"]
+        let replace = shortcuts.alerts.buttons.matching(NSPredicate(format: "label IN %@", ["替换", "Replace"])).firstMatch
+        if !run.waitForExistence(timeout: 5), replace.exists { replace.tap() }
+        if run.waitForExistence(timeout: 5) {
+            run.tap()
         } else {
             if shortcuts.navigationBars.buttons["快捷指令"].exists { shortcuts.navigationBars.buttons["快捷指令"].tap() }
             let full = shortcuts.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "读屏全文")).firstMatch
@@ -63,16 +65,38 @@ final class ShortcutsSystemTests: XCTestCase {
         let close = system.buttons.matching(NSPredicate(format: "identifier == %@ OR label IN %@", "QLOverlayDoneButtonAccessibilityIdentifier", ["完成", "Done", "关闭", "Close"])).firstMatch
         XCTAssertTrue(close.waitForExistence(timeout: 5), "System close control must be visible on presentation")
         XCTAssertTrue(close.isHittable)
-        let source = reader.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "截屏")).firstMatch
+        let screenshotImage = reader.images["原始截图"]
+        XCTAssertTrue(screenshotImage.waitForExistence(timeout: 5), "Screenshot translations should open in the original layout")
+        let overlay = reader.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "第1段。")).firstMatch
+        XCTAssertTrue(overlay.exists)
+        let compare = reader.staticTexts["原图对照"]
+        XCTAssertTrue(compare.exists)
+        compare.tap()
+        XCTAssertFalse(overlay.exists, "Original comparison hides the translated regions")
+        compare.tap()
+        XCTAssertTrue(overlay.waitForExistence(timeout: 5))
+        overlay.tap()
+        let dismissReview = reader.staticTexts["关闭核对"]
+        XCTAssertTrue(dismissReview.waitForExistence(timeout: 5), "Tapping an overlay should show its review in Quick Look")
+        XCTAssertTrue(reader.staticTexts["原文"].exists)
+        let review = XCTAttachment(screenshot: system.screenshot())
+        review.name = "系统快速查看-点按核对"; review.lifetime = .keepAlways; add(review)
+        dismissReview.tap()
+        XCTAssertFalse(dismissReview.exists)
+        let reading = reader.staticTexts["阅读"]
+        XCTAssertTrue(reading.exists)
+        reading.tap()
+        XCTAssertFalse(screenshotImage.exists)
+        let source = reader.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "截屏"))
         let original = reader.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "查看原文")).firstMatch
         XCTAssertTrue(original.waitForExistence(timeout: 5))
-        XCTAssertFalse(source.exists, "Collapsed original must not fill the translation window")
+        let collapsedSourceCount = source.count
         original.tap()
-        XCTAssertTrue(source.waitForExistence(timeout: 5), "Native disclosure must expose the original without script")
+        XCTAssertGreaterThan(source.count, collapsedSourceCount, "Native disclosure must expose the original without script")
         let expanded = XCTAttachment(screenshot: system.screenshot()); expanded.name = "展开原文-1.8.1"; expanded.lifetime = .keepAlways; add(expanded)
         XCTAssertTrue(close.exists, "Expanding original must not hide the system close control")
         original.tap()
-        XCTAssertFalse(source.exists, "Original can be collapsed again")
+        XCTAssertEqual(source.count, collapsedSourceCount, "Original can be collapsed again")
         let clean = XCTAttachment(screenshot: system.screenshot()); clean.name = "精简全文首屏-1.8.1"; clean.lifetime = .keepAlways; add(clean)
         // Check that tapping a non-interactive area does not make closing
         // unavailable in this runtime; do not change the system presentation.
@@ -112,7 +136,7 @@ final class ShortcutsSystemTests: XCTestCase {
         }
         XCTAssertTrue(reader.waitForExistence(timeout: 5))
         XCTAssertTrue(close.exists)
-        XCTAssertTrue(reader.staticTexts.containing(NSPredicate(format: "label BEGINSWITH %@", "第1段")).firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(screenshotImage.waitForExistence(timeout: 5))
         let second = XCTAttachment(screenshot: system.screenshot()); second.name = "再次运行全文弹窗"; second.lifetime = .keepAlways; add(second)
         XCTAssertTrue(close.isHittable); close.tap()
         if shortcuts.buttons["完成"].exists { shortcuts.buttons["完成"].tap() }

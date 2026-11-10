@@ -113,6 +113,20 @@ final class SettingsStore: ObservableObject {
         history = updated
     }
 
+    /// Revisions replace the existing row, without reviving a deleted record.
+    @discardableResult
+    func replaceRecordedResult(_ expected: TranslationResult, with replacement: TranslationResult) throws -> Bool {
+        guard expected.id == replacement.id else { throw TranslationError.reviewConflict }
+        guard settings.saveRecentResult else { return false }
+        var updated = try loadHistory()
+        guard let index = updated.firstIndex(where: { $0.id == expected.id }) else { return false }
+        guard updated[index] == expected else { throw TranslationError.reviewConflict }
+        updated[index] = replacement
+        try writeHistory(updated)
+        history = updated
+        return true
+    }
+
     func deleteResult(_ id: UUID) throws {
         let updated = try loadHistory().filter { $0.id != id }
         try writeHistory(updated)

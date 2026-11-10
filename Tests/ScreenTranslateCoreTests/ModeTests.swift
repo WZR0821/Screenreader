@@ -47,7 +47,7 @@ final class ModeTests: XCTestCase {
     }
 
     func testQuickPromptIsShortAndVisualSeparatesTwoMeanings() throws {
-        var settings = AppSettings(); settings.mode = .quick
+        var settings = AppSettings(); settings.mode = .quick; settings.target = .english
         let quick = try TextPreparation.instructions(settings: settings)
         settings.mode = .professional
         XCTAssertLessThan(quick.count, try TextPreparation.instructions(settings: settings).count)

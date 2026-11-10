@@ -1,6 +1,13 @@
 import Foundation
 
 enum OCRRefinementPolicy {
+    static func priority(_ line: RecognizedLine, in lines: [RecognizedLine], japaneseContext: Bool) -> Int {
+        if OCRDateReview.range(in: line.text) != nil { return 0 }
+        if japaneseContext && OCRScriptReview.bilingualRange(in: line.text) != nil { return 1 }
+        if OCRCurrencyReview.needsReview(line, in: lines) { return 2 }
+        return 3
+    }
+
     static func needsReview(_ line: RecognizedLine, imageHeight: Int) -> Bool {
         let meaningful = line.text.rangeOfCharacter(from: .alphanumerics) != nil
         return meaningful && (line.confidence < 0.7 || line.height * Double(imageHeight) < 18 || OCRDateReview.range(in: line.text) != nil)

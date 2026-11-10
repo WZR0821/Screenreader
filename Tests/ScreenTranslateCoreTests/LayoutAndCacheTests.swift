@@ -142,7 +142,7 @@ final class LayoutAndCacheTests: XCTestCase {
         }
         let original = try key(settings)
         for update: (inout AppSettings) -> Void in [
-            { $0.target = .simplifiedChinese }, { $0.source = .japanese }, { $0.customPrompt = "brief" },
+            { $0.target = .english }, { $0.source = .japanese }, { $0.customPrompt = "brief" },
             { $0.glossary = "term" }, { $0.mode = .professional }, { $0.configuration.model = "other" },
             { $0.configuration.baseURL = "https://other.test" }, { $0.tone = .literal }] {
             var changed = settings; update(&changed); XCTAssertNotEqual(try key(changed), original)

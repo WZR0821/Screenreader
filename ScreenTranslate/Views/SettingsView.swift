@@ -2,7 +2,6 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.appTheme) private var theme
-    @Environment(\.dynamicTypeSize) private var typeSize
     @ObservedObject var store: SettingsStore
     @State private var draft = AppSettings()
     @State private var keys: [String: String] = [:]
@@ -15,6 +14,8 @@ struct SettingsView: View {
     @State private var loaded = false
     @State private var advanced = false
     @State private var confirmClear = false
+    @State private var cacheStats = TranslationCache.Statistics(count: 0, bytes: 0, hits: 0, misses: 0)
+    @State private var ocrCacheStats = OCRCache.Statistics(count: 0, hits: 0, bytes: 0)
     @State private var job: Task<Void, Never>?
     @FocusState private var editing: Bool
 
@@ -29,81 +30,70 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack {
-            GeometryReader { geometry in
-                if typeSize >= .xxLarge || geometry.size.height < 520 {
-                    ScrollView { overview(compact: true) }
-                        .accessibilityIdentifier("settingsAccessibleScroll")
-                } else {
-                    overview(compact: false)
+            List {
+                Section {
+                    HStack(spacing: 14) {
+                        Image("BrandMark").resizable().frame(width: 48, height: 48)
+                            .clipShape(RoundedRectangle(cornerRadius: 12)).accessibilityHidden(true)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("读屏").font(.title3.weight(.semibold))
+                            Text("截图与文字翻译").font(.subheadline).foregroundStyle(.secondary)
+                        }
+                    }.padding(.vertical, 8).accessibilityElement(children: .combine)
                 }
-            }
-            .background(Theme.background)
-            .navigationTitle("设置").navigationBarTitleDisplayMode(.inline)
+                Section("翻译与阅读") {
+                    overviewLink("翻译偏好", detail: "\(store.settings.source.title) → \(store.settings.target.title)", icon: "character.bubble.fill", color: .blue, id: "basicSettingsLink") { basicSettings }
+                    overviewLink("外观与阅读", detail: "字体、间距与日语注音", icon: "textformat.size", color: .indigo, id: "displaySettingsLink") { displaySettings }
+                }
+                Section("AI 配置") {
+                    overviewLink("API 设置", detail: store.settings.provider.title, icon: "network", color: .green, id: "apiSettingsLink") { apiSettings }
+                    overviewLink("模式提示词", detail: "快速、专业与识图", icon: "text.bubble.fill", color: .purple, id: "promptSettingsLink") { PromptSettingsView(store: store) }
+                }
+                Section {
+                    overviewLink("缓存与记录", detail: "记录保留与临时缓存", icon: "clock.fill", color: .orange, id: "dataSettingsLink") { dataSettings }
+                    overviewLink("操作按钮", detail: "截屏后直接翻译", icon: "button.programmable", color: .gray, id: "fullScreenShortcutLink") { ShortcutGuideContent() }
+                    overviewLink("使用说明", detail: "开始使用读屏", icon: "questionmark", color: .blue, id: "usageGuideLink") { UsageGuideView() }
+                } header: { Text("数据与帮助") } footer: {
+                    VStack(spacing: 5) {
+                        Text("Jerry Wong").font(.footnote.weight(.medium)).accessibilityIdentifier("developerCredit")
+                        Text("读屏 · Screenreader  \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.3.0")")
+                            .font(.caption).accessibilityIdentifier("appVersionLabel")
+                    }.foregroundStyle(.secondary).frame(maxWidth: .infinity).padding(.top, 20).padding(.bottom, 12)
+                }
+            }.listStyle(.insetGrouped).scrollContentBackground(.hidden).background(Theme.background)
+                .accessibilityIdentifier("settingsAccessibleScroll")
+                .navigationTitle("设置").navigationBarTitleDisplayMode(.large)
         }
     }
 
-    private func overview(compact: Bool) -> some View {
-        VStack(spacing: 16) {
-            HStack(spacing: 12) {
-                Image("BrandMark").resizable().frame(width: 40, height: 40)
-                    .clipShape(RoundedRectangle(cornerRadius: 10)).accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("读屏").font(.title3.weight(.semibold))
-                    Text("截图与文字翻译").font(.caption).foregroundStyle(.secondary)
-                }
-                Spacer()
-            }.padding(.top, 6)
-            VStack(spacing: 0) {
-                overviewLink("翻译", detail: "\(store.settings.source.title) → \(store.settings.target.title)", icon: "character.bubble", id: "basicSettingsLink", compact: compact) { basicSettings }
-                menuDivider
-                overviewLink("API 设置", detail: store.settings.provider.title + " · " + (store.settings.configuration.model.isEmpty ? "选择模型" : store.settings.configuration.model), icon: "network", id: "apiSettingsLink", compact: compact) { apiSettings }
-                menuDivider
-                overviewLink("模式提示词", detail: "快速、专业、识图分别设置", icon: "text.bubble", id: "promptSettingsLink", compact: compact) { PromptSettingsView(store: store) }
-                menuDivider
-                overviewLink("外观与阅读", detail: "颜色、字号与阅读间距", icon: "circle.lefthalf.filled", id: "displaySettingsLink", compact: compact) { displaySettings }
-                menuDivider
-                overviewLink("缓存与记录", detail: "保留 \(store.settings.historyLimit) 条 · 翻译缓存", icon: "clock", id: "dataSettingsLink", compact: compact) { dataSettings }
-                menuDivider
-                overviewLink("操作按钮", detail: "截屏 → 翻译 → 全文弹窗", icon: "button.programmable", id: "fullScreenShortcutLink", compact: compact) { ShortcutGuideContent() }
-                menuDivider
-                overviewLink("使用说明", detail: "开始使用读屏", icon: "questionmark.circle", id: "usageGuideLink", compact: compact) { UsageGuideView() }
-            }
-            .background(Theme.card, in: RoundedRectangle(cornerRadius: 16))
-            VStack(spacing: 4) {
-                Text("WANG ZIRUI").font(.caption.weight(.medium)).accessibilityIdentifier("developerCredit")
-                Text("读屏 · Screenreader  \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0.0")")
-                    .font(.caption2).accessibilityIdentifier("appVersionLabel")
-            }.foregroundStyle(.secondary).frame(maxWidth: .infinity).padding(.bottom, 6)
-        }.padding(.horizontal, 20).padding(.vertical, 12)
-    }
-
-    private var menuDivider: some View { Divider().padding(.leading, 52) }
-    private func overviewLink<Destination: View>(_ title: String, detail: String, icon: String,
-        id: String, compact: Bool, @ViewBuilder destination: () -> Destination) -> some View {
+    private func overviewLink<Destination: View>(_ title: String, detail: String, icon: String, color: Color,
+        id: String, @ViewBuilder destination: () -> Destination) -> some View {
         NavigationLink(destination: destination()) {
             HStack(spacing: 12) {
-                Image(systemName: icon).font(.system(size: 18)).foregroundStyle(theme.accent)
-                    .frame(width: 24)
+                Image(systemName: icon).font(.system(size: 15, weight: .medium)).foregroundStyle(.white)
+                    .frame(width: 29, height: 29).background(color, in: RoundedRectangle(cornerRadius: 7))
+                    .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(title).font(.subheadline.weight(.medium)).foregroundStyle(.primary)
-                    Text(detail).font(.caption).foregroundStyle(.secondary).lineLimit(compact ? 2 : 1)
+                    Text(title).font(.body).foregroundStyle(.primary)
+                    Text(detail).font(.caption).foregroundStyle(.secondary)
                 }
-                Spacer(minLength: 4)
-                Image(systemName: "chevron.right").font(.caption2.weight(.semibold)).foregroundStyle(.tertiary)
-            }.padding(.horizontal, 16).padding(.vertical, compact ? 14 : 6)
-                .frame(maxWidth: .infinity, minHeight: 52, maxHeight: compact ? nil : .infinity, alignment: .leading)
-                .contentShape(Rectangle())
-        }.buttonStyle(.plain).accessibilityIdentifier(id)
+                .fixedSize(horizontal: false, vertical: true)
+            }.padding(.vertical, 3).frame(minHeight: 44)
+        }.accessibilityIdentifier(id)
     }
 
     private var displaySettings: some View {
         Form {
-            NavigationLink { AppearanceSettingsView(store: store) } label: {
-                settingsRow("外观与颜色", detail: "\(store.settings.appearance.title) · \(store.settings.accentTheme.title)", icon: "circle.lefthalf.filled")
-            }.accessibilityIdentifier("appearanceSettingsLink")
-            NavigationLink { ReaderSettingsView(store: store) } label: {
-                settingsRow("译文显示", detail: "字号、间距与原文显示", icon: "textformat.size")
-            }.accessibilityIdentifier("readerSettingsLink")
+            Section("译文阅读") {
+                NavigationLink { ReaderSettingsView(store: store) } label: {
+                    settingsRow("译文显示", detail: "字体、字号、间距与日语注音", icon: "textformat.size")
+                }.accessibilityIdentifier("readerSettingsLink")
+            }
+            Section("界面外观") {
+                NavigationLink { AppearanceSettingsView(store: store) } label: {
+                    settingsRow("外观与颜色", detail: "\(store.settings.appearance.title) · \(store.settings.accentTheme.title)", icon: "circle.lefthalf.filled")
+                }.accessibilityIdentifier("appearanceSettingsLink")
+            }
         }.scrollContentBackground(.hidden).background(Theme.background)
             .navigationTitle("外观与阅读").navigationBarTitleDisplayMode(.inline)
     }
@@ -111,12 +101,20 @@ struct SettingsView: View {
     private var dataSettings: some View {
         Form {
             Section {
-                Toggle("复用近期译文", isOn: $draft.cacheTranslations).accessibilityIdentifier("translationCacheToggle")
+                Toggle("复用近期译文与识字", isOn: $draft.cacheTranslations).accessibilityIdentifier("translationCacheToggle")
+                LabeledContent("译文缓存", value: "\(cacheStats.count) 条 · \(cacheStats.bytes / 1024) KB")
+                LabeledContent("识字缓存", value: "\(ocrCacheStats.count) 条 · 约 \(ocrCacheStats.bytes / 1024) KB")
+                LabeledContent("本次复用", value: "译文 \(cacheStats.hits) 次 · 识字 \(ocrCacheStats.hits) 次")
                 Button("清除临时缓存") {
-                    Task { await TranslationCache.shared.clear(); notice = "临时缓存已清除。" }
+                    Task {
+                        await TranslationPipeline.clearCaches()
+                        cacheStats = await TranslationCache.shared.statistics()
+                        ocrCacheStats = await OCRCache.shared.statistics()
+                        notice = "临时缓存已清除。"
+                    }
                 }.accessibilityIdentifier("clearTranslationCache")
             } header: { Text("翻译速度") } footer: {
-                Text("相同文字、语言、模型及模式要求可在 20 分钟内复用译文。缓存仅存于内存，不缓存图片。")
+                Text("20 分钟内复用相同条件下的译文与识字结果。识字缓存最多 8 条，切换目标语言可继续复用；更换原文语言、方向或术语后重新识字。缓存仅存于内存，保留文字与位置，不保存图片。")
             }
             Section {
                 Toggle("保存翻译记录", isOn: $draft.saveRecentResult).accessibilityIdentifier("saveRecentToggle")
@@ -147,18 +145,28 @@ struct SettingsView: View {
                     }.fontWeight(.semibold).accessibilityIdentifier("saveSettingsButton")
                 }
             }.onAppear { draft = store.settings; notice = nil; error = nil }
+            .task {
+                cacheStats = await TranslationCache.shared.statistics()
+                ocrCacheStats = await OCRCache.shared.statistics()
+            }
     }
 
     private var basicSettings: some View {
         Form {
             Section {
                 Picker("翻译服务", selection: Binding(get: { store.settings.translationService }, set: { service in
-                    do { try store.updateQuickEngine(service); draft = store.settings; error = nil }
+                    do {
+                        try store.updateQuickEngine(service)
+                        draft.translationService = service; draft.normalizePreferences(); error = nil
+                    }
                     catch { self.error = error.localizedDescription }
                 })) {
                     ForEach(TranslationService.allCases) { Text($0.title).tag($0) }
                 }.pickerStyle(.segmented).accessibilityIdentifier("translationServicePicker")
-            } footer: {
+                NavigationLink { LanguagePacksView(source: store.settings.source, target: store.settings.target) } label: {
+                    Label("本机语言包", systemImage: "arrow.down.circle")
+                }.accessibilityIdentifier("languagePacksLink")
+            } header: { Text("翻译引擎") } footer: {
                 Text("系统翻译仅用于 App 内快速模式。操作按钮使用 API；专业和识图模式也需要 API。")
             }
 
@@ -179,12 +187,14 @@ struct SettingsView: View {
                 Picker("默认模式", selection: $draft.mode) {
                     ForEach(store.settings.allowedModes) { Text($0.title).tag($0) }
                 }.accessibilityIdentifier("defaultModePicker")
-                Toggle("每次运行时选择模式", isOn: $draft.askModeInShortcuts)
-                    .accessibilityIdentifier("askModeInShortcutsToggle").disabled(store.settings.translationService == .system)
                 Toggle("过滤屏幕控件", isOn: $draft.cleanScreenText)
                     .accessibilityIdentifier("cleanScreenTextToggle")
-            } header: { Text("模式与操作按钮") } footer: {
+            } header: { Text("模式与识字") } footer: {
                 Text("快速模式完整简译；专业模式保留段落、列表及价格关系；识图模式解释文字与画面。也可在翻译页切换。")
+            }
+            Section("操作按钮") {
+                Toggle("每次运行时选择模式", isOn: $draft.askModeInShortcuts)
+                    .accessibilityIdentifier("askModeInShortcutsToggle").disabled(store.settings.translationService == .system)
             }
             if store.settings.translationService == .api {
             Section("术语表") {
@@ -197,7 +207,7 @@ struct SettingsView: View {
 
         }
         .scrollContentBackground(.hidden).background(Theme.background)
-        .navigationTitle("翻译").navigationBarTitleDisplayMode(.inline)
+        .navigationTitle("翻译偏好").navigationBarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .top, spacing: 0) { feedback }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -349,7 +359,13 @@ struct SettingsView: View {
         editing = false
         do {
             try store.save(value, keys: keys)
-            if !value.cacheTranslations { Task { await TranslationCache.shared.clear() } }
+            if !value.cacheTranslations {
+                Task {
+                    await TranslationPipeline.clearCaches()
+                    cacheStats = await TranslationCache.shared.statistics()
+                    ocrCacheStats = await OCRCache.shared.statistics()
+                }
+            }
             error = nil
             notice = "设置已保存，操作按钮使用同一配置。"
         } catch { self.error = error.localizedDescription; notice = nil }

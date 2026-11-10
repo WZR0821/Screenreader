@@ -17,10 +17,12 @@ struct ProfessionalLayout {
     }
     struct Document: Codable { var blocks: [Block] }
     let blocks: [Block]
+    private let sourceBlocks: [ReadingBlock]
 
     init(_ text: String, readingBlocks: [ReadingBlock]? = nil) {
         let source = readingBlocks ?? ReadingBlock.plainText(text)
         blocks = source.enumerated().map { Block(id: $0.offset + 1, text: $0.element.text, kind: $0.element.kind) }
+        sourceBlocks = source
     }
 
     func requestText() throws -> String {
@@ -32,6 +34,7 @@ struct ProfessionalLayout {
     Return matching JSON: {"blocks":[{"id":1,"text":"translation"}]}, without code fences or extra fields.
     Every id must appear exactly once. Translate each block completely; never merge across blocks, omit or summarise them. Preserve numbers, units, dates, lists, prices and tone. Do not invent headings.
     kind is determined locally: heading, paragraph, listItem, field, tableHeader or tableRow. Tables must keep the same column count and order, separated by tabs (JSON \\t). Translate each cell independently. Never move an amount or treat quantity as price. Keep Arabic digits unchanged, including meaningful standalone values.
+    Empty source cells must remain empty, including leading and trailing empty cells. Never fill an empty cell with a guessed value, zero, dash or explanation.
     Translate only text; keep id. Equivalent bilingual labels INSIDE one block may be expressed once, without losing differing numbers or conditions. Preserve uncertainty in unclear or cut-off text.
     """
 
@@ -52,7 +55,16 @@ struct ProfessionalLayout {
         }
         let ordered = doc.blocks.sorted { $0.id < $1.id }
         return try zip(blocks, ordered).map { source, translated in
-            let text = TranslationFormatting.professionalText(translated.text, source: source.text, kind: source.kind)
+            let table = source.kind == .tableHeader || source.kind == .tableRow
+            let text: String
+            if table {
+                let original = source.text.components(separatedBy: "\t")
+                let cells = translated.text.components(separatedBy: "\t")
+                guard original.count == cells.count else { throw TranslationError.incompleteLayout }
+                text = zip(original, cells).map { TranslationFormatting.professionalText($1, source: $0, kind: nil) }.joined(separator: "\t")
+            } else {
+                text = TranslationFormatting.professionalText(translated.text, source: source.text, kind: source.kind)
+            }
             guard !text.isEmpty else { throw TranslationError.incompleteLayout }
             let required = Self.numbers(source.text), returned = Self.numbers(text)
             // Check presence rather than substring matching (1 must not match 100).
@@ -62,13 +74,17 @@ struct ProfessionalLayout {
             if source.kind == .tableHeader || source.kind == .tableRow {
                 let sourceCells = source.text.components(separatedBy: "\t"), translatedCells = text.components(separatedBy: "\t")
                 guard sourceCells.count == translatedCells.count,
-                      translatedCells.allSatisfy({ !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }),
                       zip(sourceCells, translatedCells).allSatisfy({ original, value in
+                          let empty = original.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                          guard empty == value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
                           let returned = Self.numbers(value)
                           return Self.numbers(original).allSatisfy { returned[$0.key, default: 0] >= $0.value }
                       }) else { throw TranslationError.incompleteLayout }
             }
-            return ReadingBlock(id: source.id, text: text, kind: source.kind ?? .paragraph, original: source.text)
+            return ReadingBlock(id: source.id, text: text, kind: source.kind ?? .paragraph, original: source.text,
+                                sourceBox: sourceBlocks[source.id - 1].sourceBox,
+                                sourceVertical: sourceBlocks[source.id - 1].sourceVertical,
+                                sourceCellBoxes: sourceBlocks[source.id - 1].sourceCellBoxes)
         }
     }
 

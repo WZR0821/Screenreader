@@ -10,9 +10,9 @@ struct ScreenTranslateApp: App {
         WindowGroup {
             TabView(selection: $selection) {
                 TranslationView(store: store)
-                    .tabItem { Label("翻译", systemImage: "text.viewfinder") }.tag(0)
+                    .tabItem { Label("翻译", systemImage: "character.bubble.fill") }.tag(0)
                 SettingsView(store: store)
-                    .tabItem { Label("设置", systemImage: "slider.horizontal.3") }.tag(1)
+                    .tabItem { Label("设置", systemImage: "gearshape.fill") }.tag(1)
             }
             .environment(\.appTheme, AppTheme(settings: store.settings))
             .tint(AppTheme(settings: store.settings).accent)

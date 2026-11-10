@@ -6,11 +6,17 @@ import Foundation
 enum OCRScriptReview {
     static func needsReview(_ text: String) -> Bool {
         if text.range(of: #"^\s*[·•・.*]\s*[0-9][0-9,，.．]*\s*$"#, options: .regularExpression) != nil { return true }
-        guard let slash = text.lastIndex(of: "/") else { return false }
+        return bilingualRange(in: text) != nil
+    }
+
+    static func bilingualRange(in text: String) -> Range<String.Index>? {
+        guard let slash = text.lastIndex(of: "/") else { return nil }
         let prefix = text[..<slash], suffix = text[text.index(after: slash)...].trimmingCharacters(in: .whitespaces)
-        return prefix.contains(where: \.isLetter) && (3...24).contains(suffix.count)
+        guard prefix.contains(where: \.isLetter) && (3...24).contains(suffix.count)
             && suffix.contains(where: \.isNumber) && suffix.filter(\.isLetter).count <= 1
             && suffix.filter { !$0.isNumber && !$0.isWhitespace }.count >= 2
+            && suffix.contains(where: { !$0.isLetter && !$0.isNumber && !$0.isWhitespace && !"-_:.,#()".contains($0) }) else { return nil }
+        return text.range(of: suffix, range: text.index(after: slash)..<text.endIndex)
     }
 
     static func replacement(original: String, first: String, second: String) -> String? {

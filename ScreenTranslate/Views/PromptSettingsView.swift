@@ -15,12 +15,6 @@ struct PromptSettingsView: View {
             drafts[selectedMode.rawValue] = $0; notice = nil
         })
     }
-    private var preview: String {
-        var settings = store.settings
-        settings.mode = selectedMode; settings.customPrompt = prompt.wrappedValue
-        return (try? (selectedMode == .visual ? TextPreparation.imageInstructions(settings: settings)
-            : TextPreparation.instructions(settings: settings))) ?? "请缩短自定义提示词后再预览。"
-    }
     var body: some View {
         Form {
             Section {
@@ -60,9 +54,6 @@ struct PromptSettingsView: View {
                     token("{tone}", "表达风格")
                     token("{glossary}", "术语表")
                 }
-                DisclosureGroup("预览模型指令（英文）") {
-                    Text(preview).font(.footnote).textSelection(.enabled)
-                }.accessibilityIdentifier("promptPreview")
             }
         }
         .scrollContentBackground(.hidden).background(Theme.background)

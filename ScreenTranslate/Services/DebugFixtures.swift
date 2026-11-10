@@ -15,13 +15,13 @@ enum DebugFixtures {
         let suite = "ScreenTranslate.UITest"
         let defaults = UserDefaults(suiteName: suite)!
         defaults.removePersistentDomain(forName: suite)
-        Task { await TranslationCache.shared.clear() }
+        Task { await TranslationPipeline.clearCaches() }
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("ScreenTranslate.UITest")
         try? FileManager.default.removeItem(at: directory)
         let keychain = KeychainStore(service: suite)
         let store = SettingsStore(defaults: defaults, directory: directory, keychain: keychain)
         var settings = AppSettings()
-        settings.target = .simplifiedChinese // Explicit fixture language; production defaults to English.
+        settings.target = .simplifiedChinese // Keep deterministic fixture output in Chinese.
         if ProcessInfo.processInfo.arguments.contains("--fixture-defaults") { return store }
         settings.provider = .custom
         settings.configuration.baseURL = "https://fixture.invalid/v1"
@@ -35,8 +35,27 @@ enum DebugFixtures {
             settings.reader = .init(textSize: .large, spacing: .relaxed, showOriginal: true)
             settings.appearance = .light; settings.accentTheme = .blue
         }
+        if ProcessInfo.processInfo.arguments.contains("--fixture-dark") { settings.appearance = .dark }
         if ProcessInfo.processInfo.arguments.contains("--fixture-reader-collapsed") { settings.reader.showOriginal = false }
+        if ProcessInfo.processInfo.arguments.contains("--fixture-furigana") {
+            settings.target = .japanese
+            settings.reader.customFontSize = 24
+            settings.reader.customLineSpacing = 7
+        }
         try? store.save(settings, keys: [AIProvider.custom.rawValue: "ui-test-key"])
+        if ProcessInfo.processInfo.arguments.contains("--fixture-furigana") {
+            let blocks: [ReadingBlock] = [
+                .init(id: 1, text: "日本語の読み方", kind: .heading),
+                .init(id: 2, text: "今日、学校で日本語の文章を読みます。食べ物の取り扱い方法を確認してください。", kind: .paragraph),
+                .init(id: 3, text: "• 新しい言葉を覚える。", kind: .listItem),
+                .init(id: 4, text: "商品\t料金\t説明", kind: .tableHeader),
+                .init(id: 5, text: "紅茶\t三百円\t温かい飲み物", kind: .tableRow),
+                .init(id: 6, text: "図書\t無料\t日本語の本", kind: .tableRow),
+                .init(id: 7, text: "最後の段落まで読むことができます。", kind: .paragraph)
+            ]
+            try? store.record(TranslationResult(original: "Japanese reading sample", translated: blocks.map(\.text).joined(separator: "\n\n"),
+                sourceLanguages: "英语", target: "日语", engine: "UI fixture", elapsed: 0.2, mode: .professional, blocks: blocks))
+        }
         if ProcessInfo.processInfo.arguments.contains("--fixture-history") {
             for (original, translated) in [("Coffee is ready.", "咖啡煮好了。"), ("The train arrives at 10.", "列车十点到达。"), ("Open the window.", "请打开窗户。")] {
                 try? store.record(TranslationResult(original: original, translated: translated,
@@ -53,6 +72,30 @@ enum DebugFixtures {
     }
 
     @MainActor static func image() -> Data {
+        if ProcessInfo.processInfo.arguments.contains("--fixture-review-table") {
+            let format = UIGraphicsImageRendererFormat(); format.scale = 1
+            return UIGraphicsImageRenderer(size: CGSize(width: 900, height: 800), format: format).pngData { context in
+                UIColor.white.setFill(); context.fill(CGRect(x: 0, y: 0, width: 900, height: 800))
+                for (row, cells) in [["Item", "Quantity", "Price"], ["Coffee", "2", "450 yen"], ["Tea", "1", "300 yen"]].enumerated() {
+                    for (column, cell) in cells.enumerated() {
+                        (cell as NSString).draw(at: CGPoint(x: 45 + column * 280, y: 100 + row * 90),
+                            withAttributes: [.font: UIFont.systemFont(ofSize: 30), .foregroundColor: UIColor.black])
+                    }
+                }
+            }
+        }
+        if ProcessInfo.processInfo.arguments.contains("--fixture-vertical") {
+            let format = UIGraphicsImageRendererFormat(); format.scale = 1
+            return UIGraphicsImageRenderer(size: CGSize(width: 600, height: 820), format: format).pngData { context in
+                UIColor.white.setFill(); context.fill(CGRect(x: 0, y: 0, width: 600, height: 820))
+                for (index, text) in ["日本語の縦書きです", "文字を確認します"].enumerated() {
+                    for (row, glyph) in text.enumerated() {
+                        (String(glyph) as NSString).draw(at: CGPoint(x: 420 - index * 180, y: 70 + row * 60),
+                            withAttributes: [.font: UIFont.systemFont(ofSize: 40), .foregroundColor: UIColor.black])
+                    }
+                }
+            }
+        }
         if ProcessInfo.processInfo.arguments.contains("--fixture-japanese") {
             let format = UIGraphicsImageRendererFormat(); format.scale = 1
             return UIGraphicsImageRenderer(size: CGSize(width: 900, height: 1800), format: format).pngData { context in
@@ -102,14 +145,24 @@ enum DebugFixtures {
     }
 }
 
+private final class FixtureRequestCount: @unchecked Sendable {
+    private let lock = NSLock()
+    private var count = 0
+    func next() -> Int { lock.lock(); defer { lock.unlock() }; count += 1; return count }
+}
+
 private final class DebugFixtureURLProtocol: URLProtocol, @unchecked Sendable {
+    private static let requests = FixtureRequestCount()
+    private var delivery: DispatchWorkItem?
     override class func canInit(with request: URLRequest) -> Bool { request.url?.host == "fixture.invalid" }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
     override func startLoading() {
-        let status = DebugFixtures.mode == "error" ? 401 : 200
+        var status = DebugFixtures.mode == "error" ? 401 : 200
         let text: String
         if request.url?.path.hasSuffix("/models") == true { text = #"{"data":[{"id":"ui-test-model"}]}"# }
         else {
+            let count = Self.requests.next()
+            if count > 1, ProcessInfo.processInfo.arguments.contains("--fixture-retry-error") { status = 503 }
             let body = requestBodyForFixture()
             let prompt = (body?["instructions"] as? String)
                 ?? ((body?["messages"] as? [[String: Any]])?.first?["content"] as? String ?? "")
@@ -126,10 +179,22 @@ private final class DebugFixtureURLProtocol: URLProtocol, @unchecked Sendable {
             if prompt.contains("PROFESSIONAL OUTPUT PROTOCOL") {
                 let input = (body?["input"] as? String)
                     ?? ((body?["messages"] as? [[String: Any]])?.last?["content"] as? String ?? "")
+                if ProcessInfo.processInfo.arguments.contains("--fixture-review-error"), input.contains("REVIEW_FAIL") { status = 401 }
                 if let data = input.data(using: .utf8),
                    let document = try? JSONDecoder().decode(ProfessionalLayout.Document.self, from: data) {
                     let blocks = document.blocks.map { block -> ProfessionalLayout.Block in
                         var text = "\(translated)（第\(block.id)块）\n\(block.text)"
+                        if ProcessInfo.processInfo.arguments.contains("--fixture-long") {
+                            // Give the scrolling fixture one distinct ending and keep each region
+                            // small enough to fit on screen when it reaches the viewport.
+                            if block.id == document.blocks.last?.id {
+                                text = "全文结束：最后一段可以读到。\n\(block.text)"
+                            } else {
+                                text = "第\(block.id)段。\n"
+                                    + String(repeating: "这段译文用于核验系统窗口能否滚动到底。\n", count: 4)
+                                    + block.text
+                            }
+                        }
                         if ProcessInfo.processInfo.arguments.contains("--fixture-layout") {
                             text = block.text
                             for (source, target) in [("Breakfast menu", "早餐菜单"), ("Freshly made every morning.", "每天早上新鲜制作。"),
@@ -139,6 +204,8 @@ private final class DebugFixtureURLProtocol: URLProtocol, @unchecked Sendable {
                                 ("Offer ends on 2026/10/06.", "优惠截至2026/10/06。"), ("Add to cart", "加入购物车")] {
                                 text = text.replacingOccurrences(of: source, with: target)
                             }
+                            text = text.replacingOccurrences(of: " yen", with: " 日元")
+                            text = text.replacingOccurrences(of: "Order number", with: "订单号")
                         }
                         if ProcessInfo.processInfo.arguments.contains("--fixture-japanese") {
                             text = block.text
@@ -151,6 +218,10 @@ private final class DebugFixtureURLProtocol: URLProtocol, @unchecked Sendable {
                                 text = text.replacingOccurrences(of: source, with: target)
                             }
                         }
+                        if ProcessInfo.processInfo.arguments.contains("--fixture-vertical") {
+                            text = block.text.replacingOccurrences(of: "日本語の縦書きです", with: "这是日语的竖排文字")
+                                .replacingOccurrences(of: "文字を確認します", with: "请核对文字内容")
+                        }
                         return ProfessionalLayout.Block(id: block.id, text: text)
                     }
                     translated = String(decoding: try! JSONEncoder().encode(ProfessionalLayout.Document(blocks: blocks)), as: UTF8.self)
@@ -160,11 +231,19 @@ private final class DebugFixtureURLProtocol: URLProtocol, @unchecked Sendable {
             text = String(decoding: data, as: UTF8.self)
         }
         let response = HTTPURLResponse(url: request.url!, statusCode: status, httpVersion: "HTTP/1.1", headerFields: ["Content-Type": "application/json"])!
-        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-        client?.urlProtocol(self, didLoad: Data(text.utf8))
-        client?.urlProtocolDidFinishLoading(self)
+        let output = Data(text.utf8)
+        let send = { [weak self] in
+            guard let self else { return }
+            self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+            self.client?.urlProtocol(self, didLoad: output)
+            self.client?.urlProtocolDidFinishLoading(self)
+        }
+        if ProcessInfo.processInfo.arguments.contains("--fixture-delayed") {
+            let work = DispatchWorkItem(block: send); delivery = work
+            DispatchQueue.global().asyncAfter(deadline: .now() + 8, execute: work)
+        } else { send() }
     }
-    override func stopLoading() {}
+    override func stopLoading() { delivery?.cancel(); delivery = nil }
 
     private func requestBodyForFixture() -> [String: Any]? {
         var data = request.httpBody ?? Data()

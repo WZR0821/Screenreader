@@ -26,15 +26,16 @@ final class ScreenTranslateUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["translationResult"].label.contains("你好"))
         XCTAssertTrue(app.staticTexts["translationResult"].isHittable, "Translation should scroll into view automatically")
         attach("译文界面")
-        app.buttons["recentResultButton"].tap()
+        app.openTranslationHistory()
         XCTAssertTrue(app.navigationBars["翻译记录"].waitForExistence(timeout: 5))
         app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'historyRow-'")).firstMatch.tap()
         XCTAssertTrue(app.staticTexts["translationResult"].exists)
     }
 
-    @MainActor func testProfessionalScreenshotHasTypedLayoutAndRepeatsFromCache() {
+    @MainActor func testProfessionalScreenshotHasTypedLayoutAndRequestsFreshRetranslation() {
         launch(extra: ["--fixture-image", "--fixture-layout"])
         app.buttons["translateButton"].tap()
+        app.showReadingPresentation()
         XCTAssertTrue(app.staticTexts["translationResult"].waitForExistence(timeout: 25))
         XCTAssertEqual(app.staticTexts["translationResult"].label, "早餐菜单")
         XCTAssertTrue(app.staticTexts["说明"].exists)
@@ -44,17 +45,24 @@ final class ScreenTranslateUITests: XCTestCase {
         for _ in 0..<10 where !last.isHittable { app.swipeUp() }
         XCTAssertTrue(last.isHittable)
         attach("专业排版末段-1.8")
-        app.buttons["translateButton"].tap()
+        let actions = app.buttons["translationActions"]
+        for _ in 0..<10 where !actions.isHittable { app.swipeDown() }
+        actions.tap(); app.buttons["retranslateResult"].tap()
+        XCTAssertTrue(app.buttons["copyTranslation"].waitForExistence(timeout: 10))
+        expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: app.buttons["cancelTranslation"])
+        waitForExpectations(timeout: 10)
+        app.showReadingPresentation()
         XCTAssertTrue(app.staticTexts["translationResult"].waitForExistence(timeout: 10))
+        actions.tap(); app.buttons["showTranslationInformation"].tap()
         let cache = app.staticTexts["复用译文"]
-        for _ in 0..<10 where !cache.isHittable { app.swipeUp() }
-        XCTAssertTrue(cache.exists)
-        attach("缓存复用-1.8")
+        XCTAssertFalse(cache.exists, "Explicit retranslation requests fresh output")
+        attach("主动重新翻译的信息")
     }
 
     @MainActor func testJapaneseMenuShowsItemPricesConditionsAndLastButton() {
         launch(extra: ["--fixture-image", "--fixture-japanese"])
         app.buttons["translateButton"].tap()
+        app.showReadingPresentation()
         XCTAssertTrue(app.staticTexts["translationResult"].waitForExistence(timeout: 30))
         XCTAssertEqual(app.staticTexts["translationResult"].label, "午餐菜单")
         XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "不加酱汁")).firstMatch.exists)
@@ -89,6 +97,7 @@ final class ScreenTranslateUITests: XCTestCase {
     @MainActor func testUncertainOCRCanRetryInVisualMode() {
         launch(extra: ["--fixture-image", "--fixture-uncertain"])
         app.buttons["translateButton"].tap()
+        app.showReadingPresentation()
         XCTAssertTrue(app.staticTexts["translationResult"].waitForExistence(timeout: 20))
         let retry = app.buttons["retryVisualMode"]
         for _ in 0..<8 where !retry.isHittable { app.swipeUp() }
@@ -96,6 +105,7 @@ final class ScreenTranslateUITests: XCTestCase {
         retry.tap()
         XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "蓝色杯子")).firstMatch.waitForExistence(timeout: 15))
         XCTAssertFalse(app.textViews["sourceEditor"].exists)
+        app.buttons["editTranslationSource"].tap()
         XCTAssertTrue(app.segmentedControls["translationModePicker"].buttons["识图"].isSelected)
         attach("识图重试结果-1.8")
     }
@@ -103,7 +113,7 @@ final class ScreenTranslateUITests: XCTestCase {
         launch(error: true)
         translate("Hello!")
         XCTAssertTrue(app.otherElements["errorBanner"].waitForExistence(timeout: 10) || app.staticTexts.containing(NSPredicate(format: "label CONTAINS '401'")).firstMatch.waitForExistence(timeout: 3))
-        XCTAssertTrue(app.buttons["translateButton"].exists)
+        XCTAssertTrue(app.buttons["retryTranslation"].exists)
         attach("接口错误提示")
     }
     @MainActor func testSettingsSaveAndAPIFieldsAreAvailable() {
@@ -129,8 +139,8 @@ final class ScreenTranslateUITests: XCTestCase {
         app.tabBars.buttons["设置"].tap()
         XCTAssertTrue(app.buttons["basicSettingsLink"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["apiSettingsLink"].exists)
-        for _ in 0..<3 where !app.staticTexts.containing(NSPredicate(format: "label CONTAINS 'WANG ZIRUI'")).firstMatch.isHittable { app.swipeUp() }
-        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS 'WANG ZIRUI'")).firstMatch.exists)
+        for _ in 0..<3 where !app.staticTexts.containing(NSPredicate(format: "label CONTAINS 'Jerry Wong'")).firstMatch.isHittable { app.swipeUp() }
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS 'Jerry Wong'")).firstMatch.exists)
         attach("新版设置总览")
         openSettings("usageGuideLink")
         XCTAssertTrue(app.navigationBars["使用说明"].waitForExistence(timeout: 5))
@@ -215,7 +225,9 @@ final class ScreenTranslateUITests: XCTestCase {
         XCTAssertFalse(app.staticTexts["设置操作按钮"].exists)
         XCTAssertFalse(app.buttons["translateButton"].isEnabled)
         XCTAssertTrue(app.buttons["choosePhoto"].exists)
-        XCTAssertTrue(app.buttons["chooseFile"].exists)
+        XCTAssertFalse(app.buttons["chooseFile"].exists)
+        XCTAssertTrue(app.buttons["takePhoto"].exists)
+        XCTAssertTrue(app.buttons["pasteInput"].exists)
         attach("极简翻译首页")
         let editor = app.textViews["sourceEditor"]
         editor.tap(); editor.typeText("Hello")
@@ -251,7 +263,7 @@ final class ScreenTranslateUITests: XCTestCase {
         translate("A long screen of text")
         XCTAssertTrue(app.staticTexts["translationResult"].waitForExistence(timeout: 10))
         attach("紧凑长译文首段")
-        app.buttons["recentResultButton"].tap()
+        app.openTranslationHistory()
         XCTAssertTrue(app.navigationBars["翻译记录"].waitForExistence(timeout: 5))
         app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'historyRow-'")).firstMatch.tap()
         let scroll = app.scrollViews["recentResultScroll"]
@@ -273,7 +285,7 @@ final class ScreenTranslateUITests: XCTestCase {
         let picker = app.segmentedControls["translationModePicker"]
         XCTAssertTrue(picker.waitForExistence(timeout: 5))
         picker.buttons["识图"].tap()
-        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS '发送图片'")).firstMatch.exists)
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS '上传'")).firstMatch.exists)
         XCTAssertFalse(app.textViews["sourceEditor"].exists)
         attach("看图模式与上传说明")
         app.buttons["translateButton"].tap()
@@ -366,7 +378,7 @@ final class ScreenTranslateUITests: XCTestCase {
 
     @MainActor func testHistorySearchDeleteAndFullDetail() {
         launch(extra: ["--fixture-history"])
-        app.buttons["recentResultButton"].tap()
+        app.openTranslationHistory()
         XCTAssertTrue(app.navigationBars["翻译记录"].waitForExistence(timeout: 5))
         let rows = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'historyRow-'"))
         XCTAssertEqual(rows.count, 3)
@@ -393,14 +405,17 @@ final class ScreenTranslateUITests: XCTestCase {
         launch(extra: ["--fixture-history"])
         app.tabBars.buttons["设置"].tap()
         openSettings("readerSettingsLink")
+        for _ in 0..<5 where !app.segmentedControls["readerTextSizePicker"].isHittable { app.swipeUp() }
         app.segmentedControls["readerTextSizePicker"].buttons["较大"].tap()
+        for _ in 0..<5 where !app.segmentedControls["readerSpacingPicker"].isHittable { app.swipeUp() }
         app.segmentedControls["readerSpacingPicker"].buttons["宽松"].tap()
         let toggle = app.switches["readerOriginalToggle"]
+        for _ in 0..<5 where !toggle.isHittable { app.swipeUp() }
         toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
         XCTAssertEqual(toggle.value as? String, "1")
         attach("译文显示自定义")
         app.tabBars.buttons["翻译"].tap()
-        app.buttons["recentResultButton"].tap()
+        app.openTranslationHistory()
         let row = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'historyRow-'" )).firstMatch
         XCTAssertTrue(row.waitForExistence(timeout: 5)); row.tap()
         let tree = XCTAttachment(string: app.debugDescription)

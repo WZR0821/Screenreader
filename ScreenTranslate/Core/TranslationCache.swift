@@ -3,10 +3,15 @@ import CryptoKit
 
 /// Bounded, process-local cache. No screenshots, credentials or cache files are stored.
 actor TranslationCache {
+    struct Statistics: Equatable, Sendable {
+        var count: Int; var bytes: Int; var hits: Int; var misses: Int
+    }
     static let shared = TranslationCache()
     private struct Entry { var output: TranslationOutput; var created: TimeInterval; var access: Int; var bytes: Int }
     private var entries: [String: Entry] = [:]
     private var sequence = 0
+    private var generation = 0
+    private var hits = 0, misses = 0
     private let capacity: Int
     private let byteLimit: Int
     private let lifetime: TimeInterval
@@ -18,6 +23,11 @@ actor TranslationCache {
     static func key(text: String, settings: AppSettings, apiKey: String,
                     readingBlocks: [ReadingBlock]?, fromImageText: Bool, engine: String = "api") throws -> String {
         let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
+        if engine == "AppleTranslation" {
+            return digest(try encoder.encode(["version": "AppleTranslation-2", "engine": engine,
+                "text": text, "source": settings.source.rawValue, "target": settings.target.rawValue,
+                "blocks": String(decoding: try encoder.encode(readingBlocks), as: UTF8.self)]))
+        }
         let config = String(decoding: try encoder.encode(settings.configuration), as: UTF8.self)
         let blocks = String(decoding: try encoder.encode(readingBlocks), as: UTF8.self)
         let identity = ["version": TranslationPrompts.revision, "engine": engine, "text": text, "blocks": blocks,
@@ -32,12 +42,15 @@ actor TranslationCache {
 
     func value(for key: String, now: TimeInterval = ProcessInfo.processInfo.systemUptime) -> TranslationOutput? {
         expire(now: now)
-        guard var entry = entries[key] else { return nil }
+        guard var entry = entries[key] else { misses += 1; return nil }
+        hits += 1
         sequence += 1; entry.access = sequence; entries[key] = entry
         return entry.output
     }
 
-    func insert(_ output: TranslationOutput, for key: String, now: TimeInterval = ProcessInfo.processInfo.systemUptime) {
+    func insert(_ output: TranslationOutput, for key: String, now: TimeInterval = ProcessInfo.processInfo.systemUptime,
+                generation expected: Int? = nil) {
+        guard expected == nil || expected == generation else { return }
         expire(now: now)
         guard !output.text.isEmpty, let data = try? JSONEncoder().encode(output.blocks), capacity > 0 else { return }
         let size = output.text.utf8.count + data.count + (output.warning?.utf8.count ?? 0)
@@ -50,6 +63,11 @@ actor TranslationCache {
         }
     }
 
-    func clear() { entries.removeAll() }
+    func generationToken() -> Int { generation }
+    func statistics(now: TimeInterval = ProcessInfo.processInfo.systemUptime) -> Statistics {
+        expire(now: now)
+        return .init(count: entries.count, bytes: entries.values.reduce(0) { $0 + $1.bytes }, hits: hits, misses: misses)
+    }
+    func clear() { entries.removeAll(); generation += 1; hits = 0; misses = 0 }
     private func expire(now: TimeInterval) { entries = entries.filter { now >= $0.value.created && now - $0.value.created < lifetime } }
 }

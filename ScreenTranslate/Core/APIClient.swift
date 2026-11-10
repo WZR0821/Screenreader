@@ -109,13 +109,21 @@ struct APIClient {
             } else { messages.append(["role": "user", "content": clean]) }
             body["messages"] = messages
         }
-        if settings.preferSpeed {
-            // Only send documented provider-specific parameters for known models.
-            // A custom OpenAI-compatible endpoint need not implement these fields.
-            if settings.provider == .deepSeek, ["deepseek-flash", "deepseek-v4-pro"].contains(model) {
-                if config.style == .responses { body["reasoning"] = ["effort": "none"] }
-                else { body["thinking"] = ["type": "disabled"] }
+        // DeepSeek defaults to high reasoning. Use low for a bounded translation
+        // task while retaining reasoning for professional layout and vision.
+        // Never add provider-specific fields to an unknown/custom endpoint.
+        if settings.provider == .deepSeek, ["deepseek-flash", "deepseek-v4-pro"].contains(model) {
+            if config.style == .responses {
+                body["reasoning"] = ["effort": settings.preferSpeed ? "none" : "low"]
+            } else {
+                body["thinking"] = ["type": settings.preferSpeed ? "disabled" : "enabled"]
+                if !settings.preferSpeed {
+                    if config.style == .anthropicMessages { body["output_config"] = ["effort": "low"] }
+                    else { body["reasoning_effort"] = "low" }
+                }
             }
+        }
+        if settings.preferSpeed {
             if settings.provider == .openAI {
                 let efforts = ["gpt-6-luna": "none", "gpt-6-sol": "none", "gpt-6.1-sol": "low", "gpt-6-astra": "low"]
                 if let effort = efforts[model] {
@@ -131,7 +139,20 @@ struct APIClient {
             output.blocks = try layout.restoreBlocks(output.text)
             output.text = output.blocks!.map(\.text).joined(separator: "\n\n")
         }
+        try Self.validateOutputLanguage(output.text, target: settings.target)
         return output
+    }
+
+    static func validateOutputLanguage(_ text: String, target: TargetLanguage) throws {
+        // Catch an observed failure: English section headings with whole Chinese
+        // paragraphs. Keep short names, IDs and bilingual terminology valid.
+        guard target == .english else { return }
+        let cjk = text.unicodeScalars.filter { (0x3400...0x9FFF).contains($0.value) || (0x3040...0x30FF).contains($0.value) }.count
+        let latin = text.unicodeScalars.filter { (0x41...0x5A).contains($0.value) || (0x61...0x7A).contains($0.value) }.count
+        let sentences = text.filter { "。！？".contains($0) }.count
+        if cjk >= 80, Double(cjk) > Double(latin) * 1.5, sentences >= 2 {
+            throw TranslationError.unexpectedLanguage
+        }
     }
 
     func models(configuration: ProviderConfiguration, apiKey: String) async throws -> [String] {

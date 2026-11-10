@@ -7,6 +7,12 @@ struct ReadingBlock: Codable, Equatable, Identifiable, Sendable {
     var text: String
     var kind: Kind = .paragraph
     var original: String? = nil
+    // Optional local coordinates retain compatibility with existing history.
+    var sourceBox: OCRTextBox? = nil
+    var reviewEngine: String? = nil
+    var reviewSeconds: TimeInterval? = nil
+    var sourceVertical: Bool? = nil
+    var sourceCellBoxes: [OCRTextBox]? = nil
 
     var tableCells: [String]? {
         guard kind == .tableHeader || kind == .tableRow else { return nil }

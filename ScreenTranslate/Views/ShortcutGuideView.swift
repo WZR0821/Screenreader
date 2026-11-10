@@ -4,7 +4,7 @@ struct ShortcutGuideContent: View {
     var body: some View {
         List {
             Section {
-                Text("长按操作按钮，即可截屏、翻译并打开可滚动的全文窗口。")
+                Text("长按操作按钮，即可截屏并打开原图直译。可切换阅读，查看完整译文。")
                 Text("已在使用“屏译全文”？无需重建，更新 App 后原来的快捷指令和按钮绑定仍可使用。")
                     .font(.footnote).foregroundStyle(.secondary)
             }
@@ -27,7 +27,7 @@ struct ShortcutGuideContent: View {
             } header: { Text("3 · 试一次") }
             Section {
                 DisclosureGroup("查看原文与关闭窗口") {
-                    Text("点“查看原文”展开或收起识别文字。点系统的“×”或“完成”关闭。工具栏隐藏时，可点空白处或滚动到顶部。工具栏、推荐应用及窗口高度由 iOS 控制。")
+                    Text("在“原图直译”中点按译文核对，点“原图对照”显示原始截图；切换“阅读”后可展开“查看原文”。点系统的“×”或“完成”关闭。工具栏隐藏时，可点空白处或滚动到顶部。工具栏、推荐应用及窗口高度由 iOS 控制。")
                 }
                 DisclosureGroup("选择翻译模式") {
                     Text("在“设置 → 翻译”选择默认模式；也可开启“每次运行时选择模式”并保存，原有“屏译全文”同样支持。操作按钮使用 API 翻译；系统翻译仅在 App 内运行。")

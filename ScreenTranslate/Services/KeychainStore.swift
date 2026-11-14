@@ -4,8 +4,13 @@ import Security
 struct KeychainStore {
     var service = "com.screentranslate.app.api-keys"
 
-    func read(provider: AIProvider) throws -> String {
-        var query = baseQuery(provider)
+    func read(provider: AIProvider) throws -> String { try read(account: provider.rawValue) }
+    func write(_ key: String, provider: AIProvider) throws { try write(key, account: provider.rawValue) }
+
+    /// `account` is a provider entry's id: a built-in provider's raw value, or
+    /// the id of an extra custom service.
+    func read(account: String) throws -> String {
+        var query = baseQuery(account)
         query[kSecReturnData as String] = true
         query[kSecMatchLimit as String] = kSecMatchLimitOne
         var result: CFTypeRef?
@@ -18,12 +23,12 @@ struct KeychainStore {
         return value
     }
 
-    func write(_ key: String, provider: AIProvider) throws {
+    func write(_ key: String, account: String) throws {
         let clean = key.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !clean.contains("\n"), !clean.contains("\r") else {
             throw TranslationError.credentialUnavailable
         }
-        let query = baseQuery(provider)
+        let query = baseQuery(account)
         if clean.isEmpty {
             let status = SecItemDelete(query as CFDictionary)
             guard status == errSecSuccess || status == errSecItemNotFound else {
@@ -43,9 +48,9 @@ struct KeychainStore {
         } else if status != errSecSuccess { throw TranslationError.credentialUnavailable }
     }
 
-    private func baseQuery(_ provider: AIProvider) -> [String: Any] {
+    private func baseQuery(_ account: String) -> [String: Any] {
         [kSecClass as String: kSecClassGenericPassword,
          kSecAttrService as String: service,
-         kSecAttrAccount as String: provider.rawValue]
+         kSecAttrAccount as String: account]
     }
 }

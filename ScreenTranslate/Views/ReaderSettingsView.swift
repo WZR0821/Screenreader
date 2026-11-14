@@ -31,7 +31,7 @@ struct ReaderSettingsView: View {
                 // A growing preview must not move a slider out from under the finger.
                 .frame(height: 190 * min(textScale, 1.5))
                 .accessibilityIdentifier("readerPreview")
-            } header: { Text("实时预览 · 可上下滚动") } footer: {
+            } header: { Text("实时预览 · 可上下滚动").sectionTitle() } footer: {
                 Text("即选即保存，应用于阅读模式、翻译记录与下次全文窗口。原图直译按文字区域自动适配字号，可放大查看。")
             }
             Section {
@@ -42,9 +42,9 @@ struct ReaderSettingsView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .accessibilityIdentifier("readerFuriganaPreview")
                 }.frame(height: 64 * min(textScale, 1.5))
-            } header: { Text("日语注音") }
+            } header: { Text("日语注音").sectionTitle() }
               footer: { Text("在日语译文的汉字上方显示小号平假名，可在翻译页随时切换。读音由本机生成，多音字和姓名请结合语境核对。") }
-            Section("字号与字体") {
+            Section {
                 Picker("字号预设", selection: sizePreset) {
                     ForEach(ReaderTextSize.allCases) { Text($0.title).tag(Optional($0)) }
                     Text("自定义").tag(nil as ReaderTextSize?)
@@ -56,7 +56,7 @@ struct ReaderSettingsView: View {
                 }.accessibilityIdentifier("readerFontPicker")
                 Toggle("加重正文", isOn: Binding(get: { reader.emphasized }, set: { value in update { $0.emphasized = value } }))
                     .accessibilityIdentifier("readerEmphasisToggle")
-            }
+            } header: { Text("字号与字体").sectionTitle() }
             Section {
                 Picker("间距预设", selection: spacingPreset) {
                     ForEach(ReaderSpacing.allCases) { Text($0.title).tag(Optional($0)) }
@@ -66,18 +66,18 @@ struct ReaderSettingsView: View {
                            id: "readerLineSpacing") { value in update { $0.customLineSpacing = value } }
                 adjustment("段落间距", value: reader.paragraphSpacing, range: ReaderPreferences.paragraphSpacingRange,
                            id: "readerParagraphSpacing") { value in update { $0.customParagraphSpacing = value } }
-            } header: { Text("阅读间距") } footer: {
+            } header: { Text("阅读间距").sectionTitle() } footer: {
                 Text("行间距是在字体默认行高之外增加的留白；段落间距控制相邻段落之间的距离。字体会按语言自动回退到支持的字形。")
             }
-            Section("原文与恢复") {
+            Section {
                 Toggle("默认展开原文", isOn: Binding(get: { reader.showOriginal }, set: { value in update { $0.showOriginal = value } }))
                     .accessibilityIdentifier("readerOriginalToggle")
                 Button("恢复默认排版") { update { $0 = ReaderPreferences() } }
                     .accessibilityIdentifier("resetReaderPreferences")
-            }
+            } header: { Text("原文与恢复").sectionTitle() }
             if let error { Section { ErrorBanner(message: error) } }
         }
-        .scrollContentBackground(.hidden).background(Theme.background)
+        .settingsList()
         .navigationTitle("译文显示").navigationBarTitleDisplayMode(.inline)
     }
 

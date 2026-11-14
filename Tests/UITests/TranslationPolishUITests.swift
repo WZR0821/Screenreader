@@ -126,7 +126,7 @@ final class TranslationPolishUITests: XCTestCase {
         let app = launch(); translate(app)
         app.tabBars.buttons["设置"].tap(); app.buttons["basicSettingsLink"].tap()
         app.buttons["settingsTargetLanguagePicker"].tap(); app.buttons["英语"].tap()
-        app.buttons["saveSettingsButton"].tap(); app.tabBars.buttons["翻译"].tap()
+        app.tabBars.buttons["翻译"].tap()
         XCTAssertFalse(app.navigationBars["译文"].exists)
         XCTAssertTrue(app.textViews["sourceEditor"].isHittable)
         XCTAssertTrue(app.buttons["targetLanguagePicker"].label.contains("英语"))

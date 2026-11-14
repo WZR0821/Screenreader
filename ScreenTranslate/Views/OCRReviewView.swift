@@ -40,9 +40,9 @@ struct OCRReviewView: View {
                             if $0 { confirmed.insert(item.id) } else { confirmed.remove(item.id) }
                         })).disabled((drafts[item.id] ?? item.text).trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                             .accessibilityIdentifier("confirmReview-\(item.id)")
-                    } header: { Text(item.reasons.joined(separator: " · ")) }
+                    } header: { Text(item.reasons.joined(separator: " · ")).sectionTitle() }
                 }
-            }.navigationTitle("复核不确定文字").navigationBarTitleDisplayMode(.inline)
+            }.groupedListSpacing().navigationTitle("复核不确定文字").navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) { Button("取消") { dismiss() } }
                     ToolbarItem(placement: .confirmationAction) {

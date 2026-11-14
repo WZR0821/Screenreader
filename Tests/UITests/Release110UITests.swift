@@ -13,7 +13,10 @@ final class Release110UITests: XCTestCase {
         app.tabBars.buttons["设置"].tap()
         app.revealForNavigation(app.staticTexts["developerCredit"])
         XCTAssertEqual(app.staticTexts["developerCredit"].label, "Jerry Wong")
-        XCTAssertTrue(app.staticTexts["appVersionLabel"].label.contains("1.3.0"))
+        // The test bundle is built with the app's MARKETING_VERSION (Scripts/generate_project.py).
+        let version = Bundle(for: Release110UITests.self).object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+        XCTAssertNotNil(version)
+        XCTAssertTrue(app.staticTexts["appVersionLabel"].label.contains(version ?? "missing"))
         let settings = XCTAttachment(screenshot: app.screenshot()); settings.name = "1.2.0-settings"; settings.lifetime = .keepAlways; add(settings)
         app.revealForNavigation(app.buttons["promptSettingsLink"]); app.buttons["promptSettingsLink"].tap()
         app.swipeUp()

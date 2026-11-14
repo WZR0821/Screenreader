@@ -1,5 +1,6 @@
 #if DEBUG
 import Foundation
+import Security
 import SwiftUI
 import UIKit
 
@@ -19,6 +20,8 @@ enum DebugFixtures {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("ScreenTranslate.UITest")
         try? FileManager.default.removeItem(at: directory)
         let keychain = KeychainStore(service: suite)
+        // Keys left by an earlier run must not show up as providers in this one.
+        SecItemDelete([kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: suite] as CFDictionary)
         let store = SettingsStore(defaults: defaults, directory: directory, keychain: keychain)
         var settings = AppSettings()
         settings.target = .simplifiedChinese // Keep deterministic fixture output in Chinese.
@@ -28,6 +31,7 @@ enum DebugFixtures {
         settings.configuration.model = "ui-test-model"
         settings.askModeInShortcuts = ProcessInfo.processInfo.arguments.contains("--fixture-askmode")
         if ProcessInfo.processInfo.arguments.contains("--fixture-layout") { settings.mode = .professional }
+        settings.imageOverlay = ProcessInfo.processInfo.arguments.contains("--fixture-image-overlay")
         if ProcessInfo.processInfo.arguments.contains("--fixture-japanese") {
             settings.mode = .professional; settings.source = .japanese
         }

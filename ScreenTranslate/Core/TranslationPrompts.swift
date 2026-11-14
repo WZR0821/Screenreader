@@ -3,7 +3,7 @@ import Foundation
 /// Each mode has its own default and its own user preferences. The source is
 /// always data; neither an image nor OCR text may override these instructions.
 enum TranslationPrompts {
-    static let revision = "2026-10-screenreader-1.1.1-b19"
+    static let revision = "2026-11-screenreader-1.3.3-b31"
 
     static func text(settings: AppSettings) -> String {
         let tone = settings.tone == .natural

@@ -7,13 +7,13 @@ struct AppearanceSettingsView: View {
 
     var body: some View {
         Form {
-            Section("显示方式") {
+            Section {
                 Picker("显示方式", selection: Binding(get: { store.settings.appearance }, set: { appearance in
                     update { $0.appearance = appearance }
                 })) {
                     ForEach(AppAppearance.allCases) { Text($0.title).tag($0) }
                 }.pickerStyle(.segmented).accessibilityIdentifier("appearancePicker")
-            }
+            } header: { Text("显示方式").sectionTitle() }
             Section {
                 ForEach(AccentTheme.allCases) { palette in
                     Button {
@@ -39,21 +39,21 @@ struct AppearanceSettingsView: View {
                         update { $0.customAccent = .init(red: Double(r), green: Double(g), blue: Double(b)) }
                     }), supportsOpacity: false).accessibilityIdentifier("customColorPicker")
                 }
-            } header: { Text("主题色") } footer: {
+            } header: { Text("主题色").sectionTitle() } footer: {
                 Text("颜色用于按钮和选中状态，即选即保存。为保证可读性，过浅或过深的颜色会自动调整。")
             }
-            Section("阅读预览") {
+            Section {
                 VStack(alignment: .leading, spacing: 16) {
                     Text("让内容成为主角。").font(.title3.weight(.medium))
                     Text("清晰阅读，轻松翻译。").foregroundStyle(.secondary)
                     Text("翻译").font(.body.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 48)
-                        .foregroundStyle(theme.onAccent).background(theme.accent, in: RoundedRectangle(cornerRadius: 10))
+                        .foregroundStyle(theme.onAccent).background(theme.accent, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .accessibilityLabel("翻译按钮颜色预览")
                 }.padding(.vertical, 8)
-            }
+            } header: { Text("阅读预览").sectionTitle() }
             if let error { Section { ErrorBanner(message: error) } }
         }
-        .scrollContentBackground(.hidden).background(Theme.background)
+        .settingsList()
         .navigationTitle("外观与颜色").navigationBarTitleDisplayMode(.inline)
     }
 

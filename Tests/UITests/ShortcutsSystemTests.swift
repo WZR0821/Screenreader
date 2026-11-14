@@ -7,7 +7,9 @@ final class ShortcutsSystemTests: XCTestCase {
         XCUIApplication(bundleIdentifier: "com.apple.shortcuts").terminate()
         XCUIDevice.shared.press(.home)
         let app = XCUIApplication()
-        app.launchArguments = ["--ui-test", "--fixture-long", "--fixture-askmode", "--fixture-reader", "--fixture-reader-collapsed"]
+        // 原图直译 is off by default since 1.3.3; this test reads it in Quick Look.
+        app.launchArguments = ["--ui-test", "--fixture-long", "--fixture-askmode", "--fixture-reader", "--fixture-reader-collapsed",
+                               "--fixture-image-overlay"]
         app.launch()
         app.tabBars.buttons["设置"].tap()
         let entry = app.buttons["fullScreenShortcutLink"]

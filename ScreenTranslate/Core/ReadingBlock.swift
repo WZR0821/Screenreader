@@ -13,6 +13,20 @@ struct ReadingBlock: Codable, Equatable, Identifiable, Sendable {
     var reviewSeconds: TimeInterval? = nil
     var sourceVertical: Bool? = nil
     var sourceCellBoxes: [OCRTextBox]? = nil
+    /// One source line across the reading direction (height, or width for a
+    /// vertical column), normalised like `sourceBox`, and how many lines the
+    /// box holds. 原图直译 sizes and spaces the translation to match. Results
+    /// saved before 1.3.3 have neither.
+    var sourceLineHeight: Double? = nil
+    var sourceLineCount: Int? = nil
+
+    /// Geometry comes from local OCR only; translated and corrected blocks
+    /// carry their source block's geometry unchanged.
+    mutating func copyGeometry(from source: ReadingBlock) {
+        sourceBox = source.sourceBox; sourceVertical = source.sourceVertical
+        sourceCellBoxes = source.sourceCellBoxes
+        sourceLineHeight = source.sourceLineHeight; sourceLineCount = source.sourceLineCount
+    }
 
     var tableCells: [String]? {
         guard kind == .tableHeader || kind == .tableRow else { return nil }

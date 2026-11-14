@@ -27,10 +27,13 @@ final class TranslationViewModel: ObservableObject {
     @Published private(set) var phase = Phase.idle {
         didSet {
             if phase != oldValue { phaseStartedAt = Date() }
-            if phase == .idle { isTranslating = false }
+            if phase == .idle { isTranslating = false; streamingText = "" }
         }
     }
     @Published private(set) var isTranslating = false
+    /// Text received so far from a streamed reply. A preview only: it is
+    /// cleared when the job ends and replaced by the validated result.
+    @Published private(set) var streamingText = ""
     @Published private(set) var phaseStartedAt = Date()
     @Published private(set) var result: TranslationResult?
     @Published var error: String?
@@ -160,18 +163,27 @@ final class TranslationViewModel: ObservableObject {
         let visual = image != nil && snapshot.0.imageMode == .visual
         begin(visual ? .preparing : (input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .recognizing : .translating), retainingResult: true)
         let id = jobID
+        let partial: APIClient.PartialHandler = { text in
+            Task { @MainActor in
+                // Updates may arrive out of order; never let the preview shrink.
+                guard id == self.jobID, self.busy, text.count >= self.streamingText.count else { return }
+                self.streamingText = text
+            }
+        }
         job = Task {
             do {
                 var translated: TranslationResult
                 let started = Date()
                 if visual, let image {
-                    translated = try await pipeline.image(image, settings: snapshot.0, key: snapshot.1, direction: direction) { stage in
+                    translated = try await pipeline.image(image, settings: snapshot.0, key: snapshot.1, direction: direction, progress: { stage in
                         Task { @MainActor in
                             guard id == self.jobID, self.busy else { return }
                             self.phase = stage == .requesting ? .understanding : .preparing
                         }
-                    }
+                    }, onPartial: partial)
                 } else if input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, let image {
+                    // Connect to the provider while OCR runs.
+                    pipeline.warmUp(snapshot.0)
                     let recognized = try await pipeline.recognize(image, settings: snapshot.0, direction: direction)
                     let recognitionSeconds = Date().timeIntervalSince(started)
                     try Task.checkCancellation()
@@ -181,16 +193,18 @@ final class TranslationViewModel: ObservableObject {
                     textCameFromOCR = true
                     ocrWarning = recognized.lowConfidence ? "部分文字需要复核。" : nil
                     phase = .translating
-                    translated = try await pipeline.recognizedText(recognized, settings: snapshot.0, key: snapshot.1, forceRefresh: forceRefresh)
+                    translated = try await pipeline.recognizedText(recognized, settings: snapshot.0, key: snapshot.1,
+                        forceRefresh: forceRefresh, onPartial: partial)
                     translated.recognitionSeconds = recognitionSeconds
                     translated.refinementSeconds = recognized.refinementSeconds
                 } else if let recognized = recognizedOCR, recognized.text == input {
-                    translated = try await pipeline.recognizedText(recognized, settings: snapshot.0, key: snapshot.1, forceRefresh: forceRefresh)
+                    translated = try await pipeline.recognizedText(recognized, settings: snapshot.0, key: snapshot.1,
+                        forceRefresh: forceRefresh, onPartial: partial)
                     // This run reused the on-screen OCR. Do not count earlier work again.
                     translated.recognitionSeconds = 0; translated.refinementSeconds = 0
                 } else {
                     translated = try await pipeline.text(input, settings: snapshot.0, key: snapshot.1,
-                        initialWarning: warning, readingBlocks: reviewedBlocks, forceRefresh: forceRefresh)
+                        initialWarning: warning, readingBlocks: reviewedBlocks, forceRefresh: forceRefresh, onPartial: partial)
                 }
                 try Task.checkCancellation()
                 guard id == jobID else { return }
@@ -325,6 +339,18 @@ final class TranslationViewModel: ObservableObject {
     func invalidateTranslation() {
         cancel()
         result = nil; error = nil
+    }
+
+    /// 原图直译 was turned on after a quick translation that went out as plain
+    /// text. That result has no positions to place on the screenshot, but the
+    /// on-screen OCR still has them, so the main button translates again
+    /// instead of reopening the result. A block request always comes back
+    /// with blocks, so this cannot repeat once it has run.
+    func needsImageTranslation(_ settings: AppSettings) -> Bool {
+        guard settings.imageOverlay, settings.imageMode != .visual, !busy, imageData != nil,
+              let result, result.mode == .quick, result.imageMode == .text, result.blocks == nil,
+              let recognizedOCR, !recognizedOCR.blocks.isEmpty, recognizedOCR.text == text else { return false }
+        return true
     }
 
     func requestReview() {

@@ -10,7 +10,7 @@ final class TranslationReviewUITests: XCTestCase {
         app.launch()
         app.buttons["translateButton"].tap()
         XCTAssertTrue(app.buttons["copyTranslation"].waitForExistence(timeout: 40))
-        app.segmentedControls["translationPresentationPicker"].buttons["阅读"].tap()
+        app.showReadingPresentation()
         return app
     }
     @MainActor private func source(_ app: XCUIApplication, column: Int = 0) -> XCUIElement {

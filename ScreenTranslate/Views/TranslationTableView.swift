@@ -19,7 +19,7 @@ struct TranslationTableView: View {
             ScrollView(.horizontal) {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(Array(blocks.enumerated()), id: \.offset) { offset, block in
-                        HStack(alignment: .top, spacing: 12) {
+                        HStack(alignment: .center, spacing: 4) {
                         HStack(alignment: .top, spacing: 10) {
                             ForEach(Array((block.tableCells ?? []).enumerated()), id: \.offset) { column, value in
                                 JapaneseTranslationText(text: value.isEmpty ? "—" : value, target: target,

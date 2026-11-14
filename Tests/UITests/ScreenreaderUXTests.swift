@@ -70,12 +70,14 @@ final class ScreenreaderUXTests: XCTestCase {
         launch(); app.tabBars.buttons["设置"].tap(); app.buttons["dataSettingsLink"].tap()
         let keep = app.buttons["historyLimitPicker"]
         XCTAssertTrue(keep.waitForExistence(timeout: 5)); keep.tap(); app.buttons["100 条"].tap()
-        app.buttons["saveSettingsButton"].tap()
-        XCTAssertTrue(app.staticTexts["settingsNotice"].waitForExistence(timeout: 5))
+        // 1.3.1: data settings apply immediately, without a Save button.
+        XCTAssertFalse(app.buttons["saveSettingsButton"].exists)
         app.navigationBars.buttons.firstMatch.tap(); app.buttons["dataSettingsLink"].tap()
         XCTAssertTrue(app.buttons["historyLimitPicker"].label.contains("100"))
         app.navigationBars.buttons.firstMatch.tap(); app.buttons["apiSettingsLink"].tap()
-        XCTAssertTrue(app.buttons["providerPicker"].label.contains("自定义 API"))
+        let card = app.descendants(matching: .any).matching(identifier: "activeModelCard").firstMatch
+        XCTAssertTrue(card.waitForExistence(timeout: 5))
+        XCTAssertTrue(card.label.contains("自定义 API") && card.label.contains("ui-test-model"), card.label)
         attach("Screenreader-data-preferences")
     }
 
@@ -90,8 +92,10 @@ final class ScreenreaderUXTests: XCTestCase {
         attach("1.2.0-default-Chinese")
         app.tabBars.buttons["设置"].tap()
         app.buttons["apiSettingsLink"].tap()
-        XCTAssertTrue(app.buttons["providerPicker"].label.contains("DeepSeek"))
-        XCTAssertTrue(app.buttons["chooseModelButton"].label.contains("deepseek-flash"))
+        let card = app.descendants(matching: .any).matching(identifier: "activeModelCard").firstMatch
+        XCTAssertTrue(card.waitForExistence(timeout: 5))
+        XCTAssertTrue(card.label.contains("DeepSeek") && card.label.contains("deepseek-flash"), card.label)
+        XCTAssertTrue(app.buttons["provider-deepSeek"].exists)
         attach("1.2.0-default-provider")
     }
 

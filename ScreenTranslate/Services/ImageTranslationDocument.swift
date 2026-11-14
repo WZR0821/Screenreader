@@ -1,3 +1,4 @@
+import CoreText
 import Foundation
 import UIKit
 
@@ -8,15 +9,45 @@ enum ImageTranslationDocument {
                          rendered: (String) -> String) -> String {
         let items = ImageTranslationLayout.items(in: result)
         guard !items.isEmpty else { return "" }
+        // The app's own layout on a 360-point canvas, written as shares of the
+        // canvas width so it scales with the Quick Look page.
         let width = 360.0, height = 360 * Double(image.height) / Double(image.width)
+        let pixels = ImageOverlayPalette.Pixels(data: image.data)
+        let japanese = JapaneseFurigana.isJapanese(target: result.target)
         func number(_ value: Double) -> String { String(format: "%.3f", locale: Locale(identifier: "en_US_POSIX"), value) }
+        func cqw(_ value: CGFloat) -> String { number(Double(value) / width * 100) + "cqw" }
+        func css(_ color: ThemeRGB) -> String {
+            let value = color.normalized
+            return "rgb(\(Int((value.red * 255).rounded())),\(Int((value.green * 255).rounded())),\(Int((value.blue * 255).rounded())))"
+        }
         let overlays = items.map { item in
-            let box = item.box
-            let size = CGSize(width: max(1, box.width * width + 2), height: max(1, box.height * height + 3))
-            let fit = ImageOverlayTypography.fitted(item: item, size: size, color: .black,
-                annotations: JapaneseFurigana.isJapanese(target: result.target) ? JapaneseFurigana.annotations(for: item.text) : [])
+            let placement = ImageTranslationLayout.placement(of: item, in: CGSize(width: width, height: height))
+            let fit = ImageOverlayTypography.fitted(item: item, placement: placement.local, color: .black,
+                annotations: japanese ? JapaneseFurigana.annotations(for: item.text) : [])
+            let colors = pixels.flatMap { ImageOverlayPalette.sample($0, box: item.box, line: item.lineHeight, vertical: item.vertical) }
+                .map { ";background:\(css($0.background));color:\(css($0.ink))" } ?? ""
+            let align: String
+            switch placement.alignment { case .leading: align = "left"; case .center: align = "center"; case .trailing: align = "right" }
+            let tile = placement.tile, text = fit.rect
+            let words: String
+            if let lineHeight = fit.lineHeight {
+                // WebKit rounds line-height down to whole pixels, so a paragraph
+                // it wraps itself creeps upward line by line. Each of the app's
+                // own lines gets its own position instead.
+                let source = item.text as NSString
+                words = (CTFrameGetLines(fit.frame) as! [CTLine]).enumerated().map { index, line in
+                    let range = CTLineGetStringRange(line)
+                    let part = source.substring(with: NSRange(location: range.location, length: range.length))
+                        .replacingOccurrences(of: #"\s+$"#, with: "", options: .regularExpression)
+                    return "<span class=\"overlay-line\" style=\"top:\(cqw(CGFloat(index) * lineHeight));height:\(cqw(lineHeight))\">\(rendered(part))</span>"
+                }.joined()
+            } else {
+                words = rendered(item.text)
+            }
+            // The tile carries the text size as well, so the "…" that marks a
+            // hidden tail is drawn at it rather than at the page's own size.
             return """
-            <label class="overlay-word\(item.vertical ? " vertical-word" : "")" for="image-review-\(item.id)" style="left:calc(\(number(box.x * 100))% - 0.556cqw);top:calc(\(number((1 - box.y - box.height) * 100))% - 0.556cqw);width:calc(\(number(box.width * 100))% + 1.112cqw);height:calc(\(number(box.height * 100))% + 1.112cqw);font-size:\(number(Double(fit.fontSize) / width * 100))cqw;font-weight:\(item.heading ? 600 : 400)">\(rendered(item.text))\(fit.truncated ? "<span class=overflow-mark>…</span>" : "")</label>
+            <label class="overlay-word" for="image-review-\(item.id)" style="left:\(cqw(tile.minX));top:\(cqw(tile.minY));width:\(cqw(tile.width));height:\(cqw(tile.height));font-size:\(cqw(fit.fontSize))\(colors)"><span class="overlay-text\(item.vertical ? " vertical-word" : "")" style="left:\(cqw(text.minX));top:\(cqw(text.minY));width:\(cqw(text.width));height:\(cqw(text.height));font-size:\(cqw(fit.fontSize));line-height:\(fit.lineHeight.map(cqw) ?? "normal");text-align:\(align);font-weight:\(item.heading ? 600 : 400)">\(words)</span>\(fit.truncated ? "<span class=overflow-mark>…</span>" : "")</label>
             """
         }.joined()
         let details = items.map { item in
@@ -56,9 +87,11 @@ enum ImageTranslationDocument {
     .image-canvas img { display:block; width:100%; height:auto; }
     .image-overlay { position:absolute; inset:0; width:100%; height:100%; }
     #image-original:checked ~ .image-canvas .image-overlay, #image-original:checked ~ .image-review-controls { display:none; }
-    .overlay-word { display:block; position:absolute; box-sizing:border-box; padding:0.139cqw 0.278cqw; overflow:hidden; background:var(--paper); color:var(--ink); border-radius:2px; cursor:pointer; font-family:-apple-system,sans-serif; line-height:1.15; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .overlay-word { display:block; position:absolute; box-sizing:border-box; overflow:hidden; background:var(--paper); color:var(--ink); border-radius:2px; cursor:pointer; font-family:-apple-system,sans-serif; }
+    .overlay-text { display:block; position:absolute; margin:0; padding:0; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .overlay-line { display:block; position:absolute; left:0; right:0; white-space:pre; }
     .vertical-word { writing-mode:vertical-rl; text-orientation:mixed; }
-    .overflow-mark { position:absolute; bottom:0; right:0; background:var(--paper); line-height:1; }
+    .overflow-mark { position:absolute; bottom:0; right:0; background:inherit; line-height:1; }
     .image-detail { display:none; position:fixed; inset:0; background:#0005; z-index:10; padding:24px 16px; align-items:center; justify-content:center; }
     .image-review-choice:checked + .image-detail { display:flex; }
     .image-detail-card { box-sizing:border-box; width:100%; max-width:560px; max-height:85vh; overflow:auto; background:var(--paper); border-radius:22px; padding:20px; font-size:18px; }

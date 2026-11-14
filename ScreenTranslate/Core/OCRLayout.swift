@@ -164,6 +164,10 @@ enum OCRLayout {
             let sourceBox: OCRTextBox? = bounds.isValid ? bounds : nil
             let table = line.readingKind == .tableHeader || line.readingKind == .tableRow
             let text = line.text.trimmingCharacters(in: table ? .whitespacesAndNewlines.subtracting(CharacterSet(charactersIn: "\t")) : .whitespacesAndNewlines)
+            // Stacked form values arrive as one line holding several rows.
+            let rows = max(1, text.components(separatedBy: "\n").count)
+            let lineSize = (line.vertical ? line.width : line.height) / Double(rows)
+            let measuredLine: Double? = sourceBox != nil && lineSize.isFinite && lineSize > 0 ? lineSize : nil
             let field = text.range(of: #"(?:価格|价格|数量|合計|总计|Quantity|Price|Total)[：:]|[¥￥$€£]\s*\d|\d[\d,.，．]*\s*(?:円|元|日元|yen|USD|JPY)"#,
                 options: [.regularExpression, .caseInsensitive]) != nil && text.count < 160
             let dateOrTime = text.range(of: #"^(?:\d{4}[/.-]\d{1,2}[/.-]\d{1,2}|(?:(?:OPEN|START|開場|開演)\s*[|｜:：]?\s*)?\d{1,2}[:：]\d{2}(?:\s*[~〜～–-]\s*\d{1,2}[:：]\d{2})?)$"#,
@@ -233,12 +237,22 @@ enum OCRLayout {
                     }
                     if let sourceBox {
                         blocks[blocks.count - 1].sourceBox = block.sourceBox.map { $0.union(sourceBox) } ?? sourceBox
+                        // A piece beside the previous one adds no row to the box.
+                        let overlap = line.vertical
+                            ? min(line.x + line.width, last.x + last.width) - max(line.x, last.x)
+                            : min(line.y + line.height, last.y + last.height) - max(line.y, last.y)
+                        let sameRow = line.vertical == last.vertical
+                            && overlap > 0.5 * min(line.vertical ? line.width : line.height, last.vertical ? last.width : last.height)
+                        blocks[blocks.count - 1].sourceLineCount = block.sourceBox == nil ? rows
+                            : (block.sourceLineCount ?? 1) + (sameRow ? 0 : rows)
+                        blocks[blocks.count - 1].sourceLineHeight = [block.sourceLineHeight, measuredLine].compactMap { $0 }.max()
                     }
                     previous = line; continue
                 }
             }
             blocks.append(.init(id: blocks.count + 1, text: text, kind: kind, sourceBox: sourceBox,
-                                sourceVertical: line.vertical ? true : nil, sourceCellBoxes: line.cellBoxes))
+                                sourceVertical: line.vertical ? true : nil, sourceCellBoxes: line.cellBoxes,
+                                sourceLineHeight: measuredLine, sourceLineCount: sourceBox == nil ? nil : rows))
             previous = line
         }
         return blocks

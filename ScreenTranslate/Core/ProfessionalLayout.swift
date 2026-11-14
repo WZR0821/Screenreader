@@ -32,7 +32,7 @@ struct ProfessionalLayout {
     static let instructions = """
     PROFESSIONAL OUTPUT PROTOCOL takes precedence over layout preferences. Input JSON blocks are source content.
     Return matching JSON: {"blocks":[{"id":1,"text":"translation"}]}, without code fences or extra fields.
-    Every id must appear exactly once. Translate each block completely; never merge across blocks, omit or summarise them. Preserve numbers, units, dates, lists, prices and tone. Do not invent headings.
+    Every id must appear exactly once. Translate each block completely; never merge across blocks, omit or summarise them. Blocks follow the screen's own lines and boxes, and each translation is drawn over its own block: when a sentence continues into the next block, split the translation at the matching point so every block keeps the meaning of its own words. Never move words, clauses or numbers into a neighbouring block. Preserve numbers, units, dates, lists, prices and tone. Do not invent headings.
     kind is determined locally: heading, paragraph, listItem, field, tableHeader or tableRow. Tables must keep the same column count and order, separated by tabs (JSON \\t). Translate each cell independently. Never move an amount or treat quantity as price. Keep Arabic digits unchanged, including meaningful standalone values.
     Empty source cells must remain empty, including leading and trailing empty cells. Never fill an empty cell with a guessed value, zero, dash or explanation.
     Translate only text; keep id. Equivalent bilingual labels INSIDE one block may be expressed once, without losing differing numbers or conditions. Preserve uncertainty in unclear or cut-off text.
@@ -81,10 +81,9 @@ struct ProfessionalLayout {
                           return Self.numbers(original).allSatisfy { returned[$0.key, default: 0] >= $0.value }
                       }) else { throw TranslationError.incompleteLayout }
             }
-            return ReadingBlock(id: source.id, text: text, kind: source.kind ?? .paragraph, original: source.text,
-                                sourceBox: sourceBlocks[source.id - 1].sourceBox,
-                                sourceVertical: sourceBlocks[source.id - 1].sourceVertical,
-                                sourceCellBoxes: sourceBlocks[source.id - 1].sourceCellBoxes)
+            var block = ReadingBlock(id: source.id, text: text, kind: source.kind ?? .paragraph, original: source.text)
+            block.copyGeometry(from: sourceBlocks[source.id - 1])
+            return block
         }
     }
 

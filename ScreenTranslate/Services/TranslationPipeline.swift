@@ -45,7 +45,8 @@ struct TranslationPipeline {
 
     func text(_ text: String, settings: AppSettings, key: String,
               source: String? = nil, initialWarning: String? = nil, fromImageText: Bool = false,
-              readingBlocks: [ReadingBlock]? = nil, forceRefresh: Bool = false) async throws -> TranslationResult {
+              readingBlocks: [ReadingBlock]? = nil, forceRefresh: Bool = false,
+              onPartial: APIClient.PartialHandler? = nil) async throws -> TranslationResult {
         let started = Date()
         let clean = try TextPreparation.validated(text)
         _ = try TextPreparation.instructions(settings: settings)
@@ -57,14 +58,15 @@ struct TranslationPipeline {
         if let cached { output = cached }
         else { output = try await client.translate(clean, settings: settings, apiKey: key,
             timeout: settings.mode == .professional ? 90 : 25, fromImageText: fromImageText,
-            preserveBlocks: settings.mode == .professional || readingBlocks?.isEmpty == false, readingBlocks: readingBlocks)
+            preserveBlocks: settings.mode == .professional || readingBlocks?.isEmpty == false, readingBlocks: readingBlocks,
+            onPartial: onPartial)
         }
         try Task.checkCancellation()
         if cached == nil && settings.cacheTranslations { await cache.insert(output, for: identity, generation: generation) }
         var result = TranslationResult(original: clean, translated: output.text,
             sourceLanguages: settings.source == .automatic ? (source ?? LanguageDetector.describe(clean)) : settings.source.title,
             target: settings.target.title,
-            engine: "\(settings.provider.title) · \(settings.configuration.model)",
+            engine: settings.engineLabel,
             elapsed: Date().timeIntervalSince(started),
             warning: [initialWarning, output.warning].compactMap { $0 }.joinedIfNotEmpty())
         result.requestSeconds = cached == nil ? result.elapsed : 0
@@ -90,8 +92,12 @@ struct TranslationPipeline {
     }
 
     func image(_ data: Data, settings: AppSettings, key: String, direction: OCRTextDirection = .automatic,
-               progress: @escaping @Sendable (ImageProgress) -> Void = { _ in }) async throws -> TranslationResult {
+               progress: @escaping @Sendable (ImageProgress) -> Void = { _ in },
+               onPartial: APIClient.PartialHandler? = nil) async throws -> TranslationResult {
         let started = Date()
+        // Connect to the provider while the image is read; the request then
+        // skips connection setup.
+        warmUp(settings)
         if settings.imageMode == .visual {
             progress(.preparing)
             _ = try TextPreparation.imageInstructions(settings: settings)
@@ -106,11 +112,11 @@ struct TranslationPipeline {
             progress(.requesting)
             let requestStarted = Date()
             let output = try await client.translate(input, settings: settings,
-                apiKey: key, timeout: 60, imageJPEG: prepared.overview, imageDetails: prepared.details)
+                apiKey: key, timeout: 60, imageJPEG: prepared.overview, imageDetails: prepared.details, onPartial: onPartial)
             try Task.checkCancellation()
             var result = TranslationResult(original: reference?.text ?? "", translated: output.text,
                 sourceLanguages: reference?.languages ?? "图片", target: settings.target.title,
-                engine: "\(settings.provider.title) · \(settings.configuration.model)",
+                engine: settings.engineLabel,
                 elapsed: Date().timeIntervalSince(started), warning: output.warning)
             result.imageMode = .visual
             result.mode = .visual
@@ -123,10 +129,22 @@ struct TranslationPipeline {
         }
         let recognized = try await recognize(data, settings: settings, direction: direction)
         let recognitionSeconds = Date().timeIntervalSince(started)
-        var result = try await recognizedText(recognized, settings: settings, key: key)
+        var result = try await recognizedText(recognized, settings: settings, key: key, onPartial: onPartial)
         result.recognitionSeconds = recognitionSeconds
         result.elapsed = Date().timeIntervalSince(started)
         return result
+    }
+
+    /// Opens the connection to the AI provider without sending the key or any content.
+    func warmUp(_ settings: AppSettings) {
+        client.warmUp(configuration: settings.configuration)
+    }
+
+    /// Numbered blocks keep OCR geometry for 原图直译 and structure for
+    /// professional mode. Quick mode without 原图直译 sends plain text, as it did
+    /// before 1.3.0: a shorter request and reply, so the answer arrives sooner.
+    static func sendsBlocks(_ settings: AppSettings) -> Bool {
+        settings.mode == .professional || settings.imageOverlay
     }
 
     private func visualReference(_ data: Data, settings: AppSettings, direction: OCRTextDirection) async throws -> OCRResult? {
@@ -139,7 +157,8 @@ struct TranslationPipeline {
         catch { return nil }
     }
 
-    func recognizedText(_ recognized: OCRResult, settings: AppSettings, key: String, forceRefresh: Bool = false) async throws -> TranslationResult {
+    func recognizedText(_ recognized: OCRResult, settings: AppSettings, key: String, forceRefresh: Bool = false,
+                        onPartial: APIClient.PartialHandler? = nil) async throws -> TranslationResult {
         var uncertain = recognized.lowConfidence
         #if DEBUG
         if DebugFixtures.enabled && ProcessInfo.processInfo.arguments.contains("--fixture-uncertain") { uncertain = true }
@@ -148,7 +167,9 @@ struct TranslationPipeline {
             source: recognized.languages,
             initialWarning: uncertain ? "部分文字不清晰，可核对原文，或用识图模式重试。" : nil,
             fromImageText: settings.cleanScreenText,
-            readingBlocks: !recognized.blocks.isEmpty ? recognized.blocks : nil, forceRefresh: forceRefresh)
+            readingBlocks: Self.sendsBlocks(settings) && !recognized.blocks.isEmpty ? recognized.blocks : nil,
+            forceRefresh: forceRefresh,
+            onPartial: onPartial)
         result.imageMode = .text
         result.uncertainOCR = uncertain
         result.recognitionSeconds = recognized.recognitionSeconds + recognized.refinementSeconds

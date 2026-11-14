@@ -60,7 +60,7 @@ struct TranslateScreenshotIntent: AppIntent {
 
 struct TranslateTextIntent: AppIntent {
     static let title: LocalizedStringResource = "翻译文字"
-    static let description = IntentDescription("使用读屏中保存的 API 设置翻译文字。")
+    static let description = IntentDescription("使用读屏里正在用的 AI 模型翻译文字。")
     static let openAppWhenRun = false
     static let authenticationPolicy: IntentAuthenticationPolicy = .requiresAuthentication
 
@@ -84,7 +84,7 @@ struct TranslateTextIntent: AppIntent {
 
 struct TranslateScreenshotDocumentIntent: AppIntent {
     static let title: LocalizedStringResource = "翻译截图全文"
-    static let description = IntentDescription("在截图原位置显示译文，可切换阅读并点按核对。在此操作后添加“快速查看”。")
+    static let description = IntentDescription("显示截图的全文译文；开启“原图直译”后，也可在截图原位置看译文并点按核对。在此操作后添加“快速查看”。")
     static let openAppWhenRun = false
     static let authenticationPolicy: IntentAuthenticationPolicy = .requiresAuthentication
 
@@ -99,7 +99,8 @@ struct TranslateScreenshotDocumentIntent: AppIntent {
             let chosen = try await ShortcutTranslationMode.resolve(mode, parameter: $mode, store: store)
             let (result, _) = try await IntentTranslationWork.image(image.data, store: store, mode: chosen)
             let settings = await store.settings
-            let prepared = ImageTranslationLayout.items(in: result).isEmpty ? nil
+            // Without 原图直译 the document holds text only, which opens sooner.
+            let prepared = !settings.imageOverlay || ImageTranslationLayout.items(in: result).isEmpty ? nil
                 : await Task.detached(priority: .userInitiated) { SourceImagePresentation.prepare(image.data) }.value
             try Task.checkCancellation()
             let data = TranslationDocument.html(result, settings: settings, image: prepared)

@@ -80,7 +80,7 @@ final class OCRIntegrationTests: XCTestCase {
         let pipeline = TranslationPipeline(client: APIClient(session: session))
         let result = try await pipeline.image(Self.fixtureImage(), settings: settings, key: "fixture-key")
         XCTAssertTrue(result.translated.contains("你好，世界")); XCTAssertTrue(result.translated.contains("12345"))
-        XCTAssertFalse(ImageTranslationLayout.items(in: result).isEmpty)
+        XCTAssertTrue(ImageTranslationLayout.items(in: result).isEmpty, "Quick mode sends plain text unless 原图直译 is on")
         XCTAssertTrue(result.original.contains("12345"))
         XCTAssertGreaterThan(result.elapsed, 0)
     }
@@ -131,7 +131,7 @@ final class PersistenceIntegrationTests: XCTestCase {
         let keychain = KeychainStore(service: suite)
         defer { defaults.removePersistentDomain(forName: suite); try? keychain.write("", provider: .custom) }
         let store = SettingsStore(defaults: defaults, keychain: keychain)
-        var settings = AppSettings(); settings.provider = .custom; settings.saveRecentResult = false
+        var settings = AppSettings(); settings.provider = .custom; settings.saveRecentResult = false; settings.imageOverlay = true
         settings.configuration.baseURL = "https://mock.test/v1"; settings.configuration.model = "fixture"
         try store.save(settings, keys: [AIProvider.custom.rawValue: "fixture-key"])
         let config = URLSessionConfiguration.ephemeral; config.protocolClasses = [StubURLProtocol.self]

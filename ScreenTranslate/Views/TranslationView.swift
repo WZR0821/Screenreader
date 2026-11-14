@@ -2,6 +2,25 @@ import SwiftUI
 import PhotosUI
 import UniformTypeIdentifiers
 
+/// The height of the text editor. Left to itself it is as tall as its text,
+/// from `standard` up to `most`. It takes the height it is offered instead:
+/// more when the page has height to spare, and down to `least` when the page
+/// would not fit on the screen otherwise.
+private struct EditorHeight: Layout {
+    var least: CGFloat, standard: CGFloat, most: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let text = subviews.first?.sizeThatFits(ProposedViewSize(width: proposal.width, height: nil)) ?? .zero
+        let height = proposal.height ?? max(text.height, standard)
+        return CGSize(width: proposal.width ?? text.width, height: min(max(height, least), max(most, standard)))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        subviews.first?.place(at: bounds.origin, anchor: .topLeading,
+                              proposal: ProposedViewSize(width: bounds.width, height: nil))
+    }
+}
+
 struct TranslationView: View {
     @Environment(\.appTheme) private var theme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -53,9 +72,7 @@ struct TranslationView: View {
     var body: some View {
         NavigationStack {
             ScrollViewReader { dashboard in
-            ScrollView {
-                dashboardContent
-            }.accessibilityIdentifier("translationScroll")
+            OneScreenPage(identifier: "translationScroll") { _ in dashboardContent }
                 .scrollDismissesKeyboard(.interactively).background(Theme.background)
                 .onChange(of: model.error) { _, error in
                     if error != nil { DispatchQueue.main.async { dashboard.scrollTo("translation-error", anchor: .center) } }
@@ -120,28 +137,37 @@ struct TranslationView: View {
         }
     }
 
+    /// The page fills one screen exactly: the input area and the recent
+    /// translations share whatever height a taller phone leaves over. On a
+    /// shorter one the recent translations drop to one line of text, then the
+    /// editor gives up some of its height, before the page would scroll.
     private var dashboardContent: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            VStack(spacing: 16) {
-                modeControls
-                VStack(spacing: 0) {
-                    languageControls
-                    Divider().padding(.horizontal, 20)
-                    expandedInput
-                    composerActions
-                }.background(Theme.card, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(.primary.opacity(0.04)))
-                    .accessibilityElement(children: .contain).accessibilityIdentifier("translationInputPanel")
-            }
-            if let error = model.error { ErrorBanner(message: error).id("translation-error") }
+        FillStack {
+            modeControls
+            VStack(spacing: 0) {
+                languageControls
+                Divider().padding(.horizontal, 20)
+                expandedInput
+                composerActions
+            }.background(Theme.card, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(.primary.opacity(0.04)))
+                .accessibilityElement(children: .contain).accessibilityIdentifier("translationInputPanel")
+                .padding(.top, 12)
+                .stretch(160).squeezes()
+            if let error = model.error { ErrorBanner(message: error).id("translation-error").padding(.top, 16) }
             if model.imageData != nil, !visualMode, store.settings.translationService == .api,
                model.result?.uncertainOCR == true || model.ocrWarning != nil || model.error == TranslationError.noText.localizedDescription {
                 Button("用识图模式重试") {
                     retryVisualRequested = true; translationMode.wrappedValue = .visual
-                }.frame(minHeight: 44).accessibilityIdentifier("retryVisualMode")
+                }.frame(minHeight: 44).padding(.top, 8).accessibilityIdentifier("retryVisualMode")
             }
-            recentTranslations
-        }.padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 24)
+            recentHeader.padding(.top, 8)
+            if recentResults.isEmpty {
+                recentEmpty.stretch(.infinity)
+            } else {
+                recentList.stretch(40 * CGFloat(recentResults.count)).shrinks()
+            }
+        }.padding(.horizontal, 20).padding(.top, 4).padding(.bottom, 12)
     }
 
     private var composerActions: some View {
@@ -165,46 +191,57 @@ struct TranslationView: View {
         Array(store.history.prefix(2))
     }
 
-    private var recentTranslations: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            let headerLayout = typeSize.isAccessibilitySize
-                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
-                : AnyLayout(HStackLayout())
-            headerLayout {
-                Text("最近翻译").font(.title3.weight(.semibold))
-                if !typeSize.isAccessibilitySize { Spacer() }
-                Button("查看全部") { editing = false; store.refreshRecent(); showRecent = true }
-                    .font(.subheadline).frame(minHeight: 44).accessibilityLabel("查看全部翻译记录")
-                    .accessibilityIdentifier("dashboardAllHistory")
-            }
-            if recentResults.isEmpty {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("还没有翻译记录").font(.subheadline)
-                    Text("翻译完成后，可在这里继续阅读。").font(.footnote)
-                }.foregroundStyle(.secondary).padding(.vertical, 8)
-                    .accessibilityIdentifier("recentTranslationsEmpty")
-            } else {
-                VStack(spacing: 0) {
-                    ForEach(Array(recentResults.enumerated()), id: \.element.id) { offset, result in
-                        if offset > 0 { Divider().padding(.horizontal, 16) }
-                        Button {
-                            editing = false
-                            if result.id == model.result?.id { showTranslationReader = true }
-                            else { historySelectionID = result.id }
-                        } label: {
-                            HStack(spacing: 12) {
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text(result.translated).font(.body).foregroundStyle(.primary).lineLimit(2)
-                                    Text(result.target + " · " + result.date.formatted(date: .omitted, time: .shortened))
-                                        .font(.caption).foregroundStyle(.secondary)
-                                }.frame(maxWidth: .infinity, alignment: .leading)
-                                Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary)
-                            }.padding(16).contentShape(Rectangle())
-                        }.buttonStyle(.plain).accessibilityIdentifier("dashboardResult-" + result.id.uuidString)
-                    }
-                }.background(Theme.card, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-            }
+    private var recentHeader: some View {
+        let layout = typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+            : AnyLayout(HStackLayout())
+        return layout {
+            Text("最近翻译").font(.title3.weight(.semibold))
+            if !typeSize.isAccessibilitySize { Spacer() }
+            Button("查看全部") { editing = false; store.refreshRecent(); showRecent = true }
+                .font(.subheadline).frame(minHeight: 44).accessibilityLabel("查看全部翻译记录")
+                .accessibilityIdentifier("dashboardAllHistory")
         }
+    }
+
+    private var recentEmpty: some View {
+        VStack(spacing: 4) {
+            Image(systemName: "clock").font(.title2).foregroundStyle(.tertiary).padding(.bottom, 4).accessibilityHidden(true)
+            Text("还没有翻译记录").font(.subheadline)
+            Text("翻译完成后，可在这里继续阅读。").font(.footnote)
+        }
+        .foregroundStyle(.secondary).multilineTextAlignment(.center)
+        .padding(.horizontal, 16).padding(.vertical, 16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Theme.card, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .accessibilityElement(children: .combine).accessibilityIdentifier("recentTranslationsEmpty")
+    }
+
+    private var recentList: some View {
+        FillStack {
+            ForEach(Array(recentResults.enumerated()), id: \.element.id) { offset, result in
+                if offset > 0 { Divider().padding(.horizontal, 16) }
+                Button {
+                    editing = false
+                    if result.id == model.result?.id { showTranslationReader = true }
+                    else { historySelectionID = result.id }
+                } label: {
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(result.translated).font(.body).foregroundStyle(.primary).lineLimit(2)
+                            Text(result.target + " · " + result.date.formatted(date: .omitted, time: .shortened))
+                                .font(.caption).foregroundStyle(.secondary)
+                        }.frame(maxWidth: .infinity, alignment: .leading)
+                        Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary)
+                    }
+                    .padding(.horizontal, 16).padding(.vertical, 10)
+                    // The row takes whatever height the page hands it.
+                    .frame(maxHeight: .infinity)
+                    .contentShape(Rectangle())
+                }.buttonStyle(.plain).accessibilityIdentifier("dashboardResult-" + result.id.uuidString)
+                    .stretch(40).shrinks()
+            }
+        }.background(Theme.card, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 
     private var languageControls: some View {
@@ -299,7 +336,7 @@ struct TranslationView: View {
     }
 
     private var expandedInput: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 10) {
                 Text(visualMode ? "图片" : "原文").font(.caption.weight(.medium)).foregroundStyle(.secondary)
                 Spacer()
@@ -312,27 +349,31 @@ struct TranslationView: View {
                         Image(systemName: "xmark.circle.fill").font(.system(size: 18)).frame(width: 32, height: 32)
                             .frame(minWidth: 44, minHeight: 44)
                     }.foregroundStyle(.tertiary).buttonStyle(.plain).disabled(model.busy)
+                        // The button keeps its 44-point target without making the row
+                        // taller, so the editor does not jump when text first appears.
+                        .padding(.vertical, -10)
                         .accessibilityLabel("清空原文").accessibilityIdentifier("clearInputButton")
                 }
-            }.frame(minHeight: 32)
+            }.frame(minHeight: 24)
             if let preview = model.preview {
                 Image(uiImage: preview).resizable().scaledToFit().frame(maxHeight: 180)
-                    .frame(maxWidth: .infinity).clipShape(RoundedRectangle(cornerRadius: 8))
+                    .frame(maxWidth: .infinity).clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                     .accessibilityLabel("已选图片")
             }
             if visualMode && model.imageData == nil {
                 VStack(spacing: 12) {
                     Image(systemName: "viewfinder").font(.largeTitle).foregroundStyle(.tertiary).accessibilityHidden(true)
                     Text("拍照、选择照片或粘贴图片开始翻译。").font(.subheadline).foregroundStyle(.secondary)
-                }.frame(maxWidth: .infinity, minHeight: minimumEditorHeight, alignment: .center)
+                }.frame(maxWidth: .infinity, minHeight: minimumEditorHeight, maxHeight: .infinity, alignment: .center)
                     .multilineTextAlignment(.center)
             }
             if !visualMode {
-                Text(model.text.isEmpty ? " " : model.text + "\n")
-                    .font(.system(size: inputFontSize)).lineSpacing(5)
-                    .frame(maxWidth: .infinity, alignment: .leading).fixedSize(horizontal: false, vertical: true)
-                    .padding(.vertical, 8).padding(.horizontal, 5).hidden().accessibilityHidden(true)
-                    .frame(minHeight: minimumEditorHeight, maxHeight: max(minimumEditorHeight, 260), alignment: .top)
+                EditorHeight(least: minimumEditorHeight * 0.64, standard: minimumEditorHeight, most: 260) {
+                    Text(model.text.isEmpty ? " " : model.text + "\n")
+                        .font(.system(size: inputFontSize)).lineSpacing(5)
+                        .frame(maxWidth: .infinity, alignment: .leading).fixedSize(horizontal: false, vertical: true)
+                        .padding(.vertical, 8).padding(.horizontal, 5).hidden().accessibilityHidden(true)
+                }
                     .overlay(alignment: .topLeading) {
                         ZStack(alignment: .topLeading) {
                             if model.text.isEmpty {
@@ -356,7 +397,7 @@ struct TranslationView: View {
                     .font(.subheadline).frame(minHeight: 44).disabled(model.busy).accessibilityIdentifier("recognizeOnly")
             }
             }
-        }.padding(.horizontal, 20).padding(.top, 12).padding(.bottom, 16)
+        }.padding(.horizontal, 20).padding(.top, 10).padding(.bottom, 12)
     }
 
     private var importActions: some View {
@@ -389,13 +430,16 @@ struct TranslationView: View {
                         .frame(maxWidth: .infinity, minHeight: 44).accessibilityIdentifier("resumeTranslation")
                 }
             } else {
+                // After 原图直译 is turned on, a plain-text quick result is
+                // translated again so it can be placed on the screenshot.
+                let opensResult = model.result != nil && !model.needsImageTranslation(store.settings)
                 Button {
-                    if model.result != nil { editing = false; showTranslationReader = true }
+                    if opensResult { editing = false; showTranslationReader = true }
                     else { startTranslation() }
                 } label: {
                     HStack(spacing: 8) {
-                        Text(model.result != nil ? "查看译文" : (visualMode ? "翻译图片" : (model.imageData != nil && model.text.isEmpty ? "识字并翻译" : "翻译")))
-                        Image(systemName: model.result != nil ? "doc.text" : "arrow.right").accessibilityHidden(true)
+                        Text(opensResult ? "查看译文" : (visualMode ? "翻译图片" : (model.imageData != nil && model.text.isEmpty ? "识字并翻译" : "翻译")))
+                        Image(systemName: opensResult ? "doc.text" : "arrow.right").accessibilityHidden(true)
                     }.font(.subheadline.weight(.semibold))
                         .foregroundStyle(hasInput && (!visualMode || model.imageData != nil) ? theme.onAccent : Color.secondary)
                         .frame(maxWidth: .infinity, minHeight: 22)
@@ -491,6 +535,26 @@ private final class PasteReceiverView: UIView {
 }
 
 
+/// Text arriving from a streamed reply. It has not passed the layout, number
+/// and language checks yet, so it is labelled and replaced when they finish.
+private struct StreamingTranslationCard: View {
+    let text: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("正在接收译文，完成校验后替换为正式结果", systemImage: "ellipsis.bubble")
+                .font(.caption).foregroundStyle(.secondary)
+            Text(text)
+                .font(.body).lineSpacing(4)
+                .textSelection(.enabled)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityIdentifier("streamingTranslation")
+        }
+        .padding(16)
+        .background(Theme.background, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+    }
+}
+
 private struct LiveTranslationReader: View {
     @Environment(\.appTheme) private var theme
     @ObservedObject var model: TranslationViewModel
@@ -505,8 +569,10 @@ private struct LiveTranslationReader: View {
                 VStack(alignment: .leading, spacing: 18) {
                     if model.busy {
                         TranslationProgressContent(model: model)
-                            .padding(16).background(Theme.background, in: RoundedRectangle(cornerRadius: 18))
-                        if model.result != nil {
+                            .padding(16).background(Theme.background, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                        if !model.streamingText.isEmpty {
+                            StreamingTranslationCard(text: model.streamingText)
+                        } else if model.result != nil {
                             Text("下方保留上次译文，完成后更新。").font(.caption).foregroundStyle(.secondary)
                         }
                     }
@@ -526,7 +592,8 @@ private struct LiveTranslationReader: View {
                             }
                         }
                     }
-                    if let result = model.result {
+                    // While a reply streams in, the earlier result would only compete with it.
+                    if let result = model.result, !(model.busy && !model.streamingText.isEmpty) {
                         ResultContent(result: result, store: store, compactHeading: true,
                             isWorking: model.busy,
                             onRetranslate: { model.translate(forceRefresh: true) }, onReviewBlock: { review(result, $0) },

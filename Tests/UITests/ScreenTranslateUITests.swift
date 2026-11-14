@@ -116,22 +116,24 @@ final class ScreenTranslateUITests: XCTestCase {
         XCTAssertTrue(app.buttons["retryTranslation"].exists)
         attach("接口错误提示")
     }
-    @MainActor func testSettingsSaveAndAPIFieldsAreAvailable() {
+    @MainActor func testProviderKeyAddressAndModelsAreAvailable() {
         launch()
         app.tabBars.buttons["设置"].tap()
         openSettings("apiSettingsLink")
-        XCTAssertTrue(app.secureTextFields["apiKeyField"].exists)
-        XCTAssertTrue(app.textFields["modelField"].exists)
+        XCTAssertTrue(app.buttons["provider-custom"].waitForExistence(timeout: 5))
+        app.buttons["provider-custom"].tap()
+        XCTAssertTrue(app.buttons["editCredentialsButton"].waitForExistence(timeout: 5))
+        app.buttons["editCredentialsButton"].tap()
+        XCTAssertTrue(app.secureTextFields["apiKeyField"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.textFields["apiURLField"].exists)
+        app.buttons["cancelCredentialsButton"].tap()
+        XCTAssertTrue(app.buttons["addModelButton"].waitForExistence(timeout: 5))
+        app.buttons["addModelButton"].tap()
+        XCTAssertTrue(app.textFields["modelField"].waitForExistence(timeout: 5))
         app.buttons["fetchModelsButton"].tap()
         XCTAssertTrue(app.navigationBars["选择模型"].waitForExistence(timeout: 5))
-        app.buttons["ui-test-model"].tap()
-        app.buttons["testConnectionButton"].tap()
-        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS '连接成功'")).firstMatch.waitForExistence(timeout: 5))
-        app.buttons["saveSettingsButton"].tap()
-        XCTAssertTrue(app.staticTexts["settingsNotice"].waitForExistence(timeout: 5) || app.staticTexts.containing(NSPredicate(format: "label CONTAINS '设置已保存'")).firstMatch.exists)
+        XCTAssertTrue(app.buttons["model-ui-test-model"].exists)
         attach("设置界面")
-        for _ in 0..<4 where !app.textFields["apiURLField"].exists { app.swipeUp() }
-        XCTAssertTrue(app.textFields["apiURLField"].waitForExistence(timeout: 5))
     }
 
     @MainActor func testSettingsOverviewHasDeveloperAndUsageInstructions() {
@@ -167,15 +169,11 @@ final class ScreenTranslateUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["translationResult"].label.contains("こんにちは"))
         attach("英语翻译日语")
         app.tabBars.buttons["设置"].tap()
-        openSettings("apiSettingsLink")
-        app.buttons["saveSettingsButton"].tap()
-        app.navigationBars.buttons["设置"].tap()
         openSettings("basicSettingsLink")
         XCTAssertTrue(app.buttons["settingsSourceLanguagePicker"].label.contains("英语"))
         XCTAssertTrue(app.buttons["settingsTargetLanguagePicker"].label.contains("日语"))
         selectLanguage("settingsSourceLanguagePicker", title: "日语")
         selectLanguage("settingsTargetLanguagePicker", title: "英语")
-        app.buttons["saveSettingsButton"].tap()
         attach("基础设置语言")
         app.tabBars.buttons["翻译"].tap()
         for _ in 0..<4 where !app.buttons["swapLanguagesButton"].isHittable { app.swipeDown() }
@@ -198,11 +196,19 @@ final class ScreenTranslateUITests: XCTestCase {
         launch()
         app.tabBars.buttons["设置"].tap()
         openSettings("apiSettingsLink")
-        selectLanguage("providerPicker", title: "DeepSeek")
-        app.buttons["chooseModelButton"].tap()
-        XCTAssertTrue(app.buttons["model-deepseek-v4-pro"].waitForExistence(timeout: 5))
-        app.buttons["model-deepseek-v4-pro"].tap()
-        app.buttons["saveSettingsButton"].tap()
+        app.buttons["addProviderButton"].tap()
+        XCTAssertTrue(app.buttons["preset-deepSeek"].waitForExistence(timeout: 5))
+        app.buttons["preset-deepSeek"].tap()
+        let key = app.secureTextFields["apiKeyField"]
+        XCTAssertTrue(key.waitForExistence(timeout: 5)); key.tap(); key.typeText("sk-ui-test")
+        app.buttons["confirmAddProviderButton"].tap()
+        XCTAssertTrue(app.buttons["provider-deepSeek"].waitForExistence(timeout: 5))
+        app.buttons["switchModelButton"].tap()
+        XCTAssertTrue(app.buttons["switch-deepSeek-deepseek-v4-pro"].waitForExistence(timeout: 5))
+        app.buttons["switch-deepSeek-deepseek-v4-pro"].tap()
+        let card = app.descendants(matching: .any).matching(identifier: "activeModelCard").firstMatch
+        expectation(for: NSPredicate(format: "label CONTAINS 'deepseek-v4-pro'"), evaluatedWith: card)
+        waitForExpectations(timeout: 5)
         attach("主流AI预设")
         app.navigationBars.buttons["设置"].tap()
         openSettings("promptSettingsLink")
@@ -214,7 +220,8 @@ final class ScreenTranslateUITests: XCTestCase {
         attach("自定义提示词")
         app.navigationBars.buttons["设置"].tap()
         openSettings("apiSettingsLink")
-        XCTAssertTrue(app.buttons["chooseModelButton"].label.contains("deepseek-v4-pro"))
+        XCTAssertTrue(card.waitForExistence(timeout: 5))
+        XCTAssertTrue(card.label.contains("deepseek-v4-pro"), card.label)
         app.navigationBars.buttons["设置"].tap()
         openSettings("promptSettingsLink")
         XCTAssertTrue(app.textViews["customPromptEditor"].value as? String == "Keep names. {target_language}")
@@ -248,15 +255,23 @@ final class ScreenTranslateUITests: XCTestCase {
         launch()
         translate("Hello!")
         XCTAssertTrue(app.staticTexts["translationResult"].waitForExistence(timeout: 10))
+        // The result opens on its own reading page; "编辑" returns to the source.
+        app.buttons["editTranslationSource"].tap()
+        let translate = app.buttons["translateButton"]
+        XCTAssertTrue(translate.waitForExistence(timeout: 5))
+        XCTAssertTrue(translate.label.contains("查看译文"), "Before editing, the kept result can be reopened")
         let editor = app.textViews["sourceEditor"]
         for _ in 0..<4 where !editor.isHittable {
             app.coordinate(withNormalizedOffset: CGVector(dx: 0.97, dy: 0.3))
                 .press(forDuration: 0.01, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.97, dy: 0.7)))
         }
         editor.tap(); editor.typeText(" Updated.")
-        XCTAssertFalse(app.staticTexts["translationResult"].exists)
         if app.buttons["完成"].exists { app.buttons["完成"].tap() }
-        XCTAssertTrue(app.buttons["translateButton"].isEnabled)
+        // Editing drops the stale result: the button translates again instead of reopening it.
+        XCTAssertTrue(translate.isEnabled)
+        XCTAssertFalse(translate.label.contains("查看译文"))
+        XCTAssertTrue(translate.label.contains("翻译"))
+        XCTAssertFalse(app.staticTexts["translationResult"].exists)
     }
     @MainActor func testLongResultScrollsToLastParagraphInRecentResult() {
         launch(extra: ["--fixture-long"])
@@ -308,7 +323,6 @@ final class ScreenTranslateUITests: XCTestCase {
         let ask = app.switches["askModeInShortcutsToggle"]
         for _ in 0..<3 where !ask.isHittable { app.swipeUp() }
         ask.tap()
-        app.buttons["saveSettingsButton"].tap()
         attach("默认模式与每次询问")
     }
 

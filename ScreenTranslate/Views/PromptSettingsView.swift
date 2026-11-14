@@ -10,6 +10,9 @@ struct PromptSettingsView: View {
     @State private var error: String?
     @FocusState private var editing: Bool
 
+    private var hasChanges: Bool {
+        TranslationMode.allCases.contains { (drafts[$0.rawValue] ?? "") != store.settings.prompt(for: $0) }
+    }
     private var prompt: Binding<String> {
         Binding(get: { drafts[selectedMode.rawValue] ?? "" }, set: {
             drafts[selectedMode.rawValue] = $0; notice = nil
@@ -37,14 +40,14 @@ struct PromptSettingsView: View {
                 }
                 HStack {
                     Text("\(prompt.wrappedValue.count) / 8000").font(.caption.monospacedDigit())
-                        .foregroundStyle(prompt.wrappedValue.count > 8000 ? .red : .secondary)
+                        .foregroundStyle(prompt.wrappedValue.count > 8000 ? AnyShapeStyle(.red) : AnyShapeStyle(.secondary))
                     Spacer()
                     Button("示例") { prompt.wrappedValue = TextPreparation.promptExample(for: selectedMode) }
                         .font(.caption).frame(minHeight: 44).accessibilityIdentifier("insertPromptExampleButton")
                     Button("恢复默认") { prompt.wrappedValue = "" }
                         .font(.caption).frame(minHeight: 44).accessibilityIdentifier("resetPromptButton")
                 }
-            } header: { Text("\(selectedMode.title)模式要求") } footer: {
+            } header: { Text("\(selectedMode.title)模式要求").sectionTitle() } footer: {
                 Text("留空即使用该模式的默认要求。可调整措辞与术语，事实、目标语言和模式结构仍会保留。保存会将三种模式的草稿同步用于 App 和操作按钮。")
             }
             Section {
@@ -56,7 +59,7 @@ struct PromptSettingsView: View {
                 }
             }
         }
-        .scrollContentBackground(.hidden).background(Theme.background)
+        .settingsList()
         .navigationTitle("模式提示词").navigationBarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .top) {
             VStack {
@@ -70,21 +73,25 @@ struct PromptSettingsView: View {
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("保存") {
-                    editing = false
-                    var settings = store.settings
-                    for mode in TranslationMode.allCases { settings.setPrompt(drafts[mode.rawValue] ?? "", for: mode) }
-                    do { try store.save(settings, keys: [:]); error = nil; notice = "三种模式的提示词已保存。" }
-                    catch { self.error = error.localizedDescription; notice = nil }
-                }.fontWeight(.semibold).accessibilityIdentifier("savePromptButton")
+                Button("保存") { save() }.fontWeight(.semibold).disabled(!hasChanges)
+                    .accessibilityIdentifier("savePromptButton")
             }
             ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("完成") { editing = false } }
         }
+        .modifier(UnsavedChangesGuard(hasChanges: hasChanges, save: save))
         .onChange(of: selectedMode) { _, _ in editing = false; notice = nil; error = nil }
         .onAppear {
             guard !loaded else { return }
             drafts = store.settings.modePrompts; selectedMode = store.settings.mode; loaded = true
         }
+    }
+    @discardableResult
+    private func save() -> Bool {
+        editing = false
+        var settings = store.settings
+        for mode in TranslationMode.allCases { settings.setPrompt(drafts[mode.rawValue] ?? "", for: mode) }
+        do { try store.save(settings, keys: [:]); error = nil; notice = "三种模式的提示词已保存。"; return true }
+        catch { self.error = error.localizedDescription; notice = nil; return false }
     }
     private func token(_ token: String, _ label: String) -> some View {
         LabeledContent(label) { Text(token).font(.caption.monospaced()).foregroundStyle(theme.accent) }

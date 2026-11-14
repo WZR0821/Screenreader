@@ -1,9 +1,15 @@
 import XCTest
 
 extension XCUIApplication {
+    /// Waits for a result and leaves it in reading form. Since 1.3.3 原图直译 is
+    /// optional: without it the result opens as text and has no picker.
     @MainActor func showReadingPresentation() {
         let picker = segmentedControls["translationPresentationPicker"]
-        XCTAssertTrue(picker.waitForExistence(timeout: 40))
+        let copy = buttons["copyTranslation"]
+        let deadline = Date().addingTimeInterval(40)
+        while !picker.exists && !copy.exists && Date() < deadline { _ = copy.waitForExistence(timeout: 1) }
+        XCTAssertTrue(picker.exists || copy.exists, "No translation result appeared")
+        guard picker.exists else { return }
         revealForNavigation(picker); picker.buttons["阅读"].tap()
     }
     @MainActor func revealForNavigation(_ element: XCUIElement) {

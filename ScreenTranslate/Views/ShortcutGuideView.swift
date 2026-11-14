@@ -14,17 +14,17 @@ struct ShortcutGuideContent: View {
                         .accessibilityIdentifier("importFullShortcut")
                 }
                 Text("点“安装” → 选择“快捷指令” → “添加快捷指令” → “完成”。")
-            } header: { Text("1 · 安装快捷指令") } footer: {
+            } header: { Text("1 · 安装快捷指令").sectionTitle() } footer: {
                 Text("已连接好三个操作。分享菜单中找不到“快捷指令”时，可先存储到“文件”，再打开该文件。")
             }
             Section {
                 Text("打开 iPhone“设置” → “操作按钮” → 滑到“快捷指令” → 选择“读屏全文”。")
-            } header: { Text("2 · 绑定操作按钮") } footer: {
+            } header: { Text("2 · 绑定操作按钮").sectionTitle() } footer: {
                 Text("请选择完整的快捷指令，单独的翻译操作不会自动截屏和打开全文。")
             }
             Section {
                 Text("解锁手机，打开待翻译页面，长按操作按钮。首次按提示允许权限；在结果窗口上下滑动，可读到最后一项。")
-            } header: { Text("3 · 试一次") }
+            } header: { Text("3 · 试一次").sectionTitle() }
             Section {
                 DisclosureGroup("查看原文与关闭窗口") {
                     Text("在“原图直译”中点按译文核对，点“原图对照”显示原始截图；切换“阅读”后可展开“查看原文”。点系统的“×”或“完成”关闭。工具栏隐藏时，可点空白处或滚动到顶部。工具栏、推荐应用及窗口高度由 iOS 控制。")
@@ -42,8 +42,8 @@ struct ShortcutGuideContent: View {
                     Label("打开快捷指令", systemImage: "arrow.up.forward.app")
                 }.accessibilityIdentifier("openShortcutsFromGuide")
                 Link("Apple 官方：为操作按钮设置快捷指令", destination: URL(string: "https://support.apple.com/guide/shortcuts/apdfea15680b/ios")!)
-            } header: { Text("常见问题") }
-        }.listStyle(.insetGrouped).font(.subheadline)
+            } header: { Text("常见问题").sectionTitle() }
+        }.settingsList().font(.subheadline)
             .navigationTitle("操作按钮").navigationBarTitleDisplayMode(.inline)
     }
 }

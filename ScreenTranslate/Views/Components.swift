@@ -36,6 +36,64 @@ extension View {
         presentationDetents([.large]).presentationDragIndicator(.visible)
             .presentationCornerRadius(28).presentationBackground(Theme.background)
     }
+
+    /// The look every settings list shares: taller rows than the system default,
+    /// and less empty space above the first group and between groups.
+    /// - Parameter icons: every row carries an icon, so rows get a little more height.
+    func settingsList(icons: Bool = false) -> some View {
+        modifier(SettingsListStyle(icons: icons))
+    }
+
+    /// Only the spacing of `settingsList()`, for lists whose rows hold longer
+    /// text or images and so set their own height.
+    func groupedListSpacing() -> some View {
+        listSectionSpacing(ListMetrics.sectionSpacing)
+            .environment(\.defaultMinListHeaderHeight, 0)
+            // Setting the margin replaces the system's own space above the first group.
+            .contentMargins(.top, ListMetrics.topMargin, for: .scrollContent)
+    }
+
+    /// A group title in a grouped list: the system look, without forced capitals
+    /// and with less empty space above it. `listSectionSpacing` alone leaves the
+    /// title's own padding in place, which is most of the gap between two groups.
+    func sectionTitle() -> some View {
+        textCase(nil).listRowInsets(EdgeInsets(top: ListMetrics.titleTop, leading: 20,
+                                               bottom: ListMetrics.titleBottom, trailing: 20))
+    }
+}
+
+/// Spacing of the settings lists. Measured on screen, two groups with a title
+/// between them end up `sectionSpacing + titleTop + titleBottom + 15.7` points
+/// apart, and two groups without one exactly `sectionSpacing`.
+enum ListMetrics {
+    /// Between two groups; a group's title adds its own height to this.
+    static let sectionSpacing: CGFloat = 20
+    /// Above the first group under an inline navigation bar.
+    static let topMargin: CGFloat = 12
+    static let titleTop: CGFloat = 2
+    static let titleBottom: CGFloat = 6
+    /// The least height of a row of text, and of a row that carries an icon.
+    static let rowHeight: CGFloat = 52
+    static let iconRowHeight: CGFloat = 60
+    /// Above and below a label of two lines, which makes its row a little taller than a one-line row.
+    static let twoLinePadding: CGFloat = 2
+}
+
+private struct SettingsListStyle: ViewModifier {
+    @ScaledMetric private var rowHeight: CGFloat
+
+    init(icons: Bool) {
+        _rowHeight = ScaledMetric(wrappedValue: icons ? ListMetrics.iconRowHeight : ListMetrics.rowHeight,
+                                  relativeTo: .body)
+    }
+
+    func body(content: Content) -> some View {
+        content
+            .listStyle(.insetGrouped)
+            .scrollContentBackground(.hidden).background(Theme.background)
+            .environment(\.defaultMinListRowHeight, rowHeight)
+            .groupedListSpacing()
+    }
 }
 
 struct Surface<Content: View>: View {
@@ -43,20 +101,23 @@ struct Surface<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) { content }
             .padding(18).frame(maxWidth: .infinity, alignment: .leading)
-            .background(Theme.card, in: RoundedRectangle(cornerRadius: 18))
-            .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(.primary.opacity(0.035), lineWidth: 1))
+            .background(Theme.card, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 }
 
 struct ErrorBanner: View {
     var message: String
     var body: some View {
-        Label { Text(message).font(.subheadline) } icon: {
-            Image(systemName: "exclamationmark.circle.fill")
+        // Red marks the state; the message itself stays in the primary colour so
+        // a long provider message remains easy to read.
+        Label {
+            Text(message).font(.subheadline).foregroundStyle(.primary)
+                .fixedSize(horizontal: false, vertical: true)
+        } icon: {
+            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red)
         }
-        .foregroundStyle(.red)
-        .padding(16).frame(maxWidth: .infinity, alignment: .leading)
-        .background(.red.opacity(0.07), in: RoundedRectangle(cornerRadius: 16))
+        .padding(.horizontal, 14).padding(.vertical, 12).frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         .accessibilityIdentifier("errorBanner")
     }
 }
@@ -76,7 +137,10 @@ struct ResultContent: View {
     var onRetranslate: (() -> Void)? = nil
     var onReviewBlock: ((Int) -> Void)? = nil
     var sourceImageData: Data? = nil
-    private var hasImageTranslation: Bool { sourceImageData != nil && !ImageTranslationLayout.items(in: result).isEmpty }
+    /// 原图直译 is an optional module: without it the result is text only.
+    private var hasImageTranslation: Bool {
+        theme.settings.imageOverlay && sourceImageData != nil && !ImageTranslationLayout.items(in: result).isEmpty
+    }
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 2) {
@@ -89,7 +153,8 @@ struct ResultContent: View {
                 Button {
                     UIPasteboard.general.string = result.translated; copied = true; copyCount += 1
                 } label: {
-                    Image(systemName: copied ? "checkmark" : "doc.on.doc").font(.system(size: 16)).frame(width: 44, height: 44)
+                    Image(systemName: copied ? "checkmark" : "doc.on.doc").font(.system(size: 17)).frame(width: 44, height: 44)
+                        .contentTransition(.symbolEffect(.replace))
                 }.foregroundStyle(copied ? theme.accent : Color.secondary)
                     .accessibilityLabel("复制译文").accessibilityValue(copied ? "已复制" : "")
                     .accessibilityIdentifier("copyTranslation").sensoryFeedback(.success, trigger: copyCount)
@@ -103,7 +168,7 @@ struct ResultContent: View {
                             .accessibilityIdentifier("retranslateResult")
                     }
                 } label: {
-                    Image(systemName: "ellipsis").font(.system(size: 16)).frame(width: 44, height: 44)
+                    Image(systemName: "ellipsis.circle").font(.system(size: 17)).frame(width: 44, height: 44)
                 }.foregroundStyle(.secondary).accessibilityLabel("更多译文操作").accessibilityIdentifier("translationActions")
             }.buttonStyle(.plain).tint(.secondary)
                 .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
@@ -132,7 +197,7 @@ struct ResultContent: View {
                             reader: theme.settings.reader, textScale: textScale, target: result.target, onReviewBlock: onReviewBlock, isWorking: isWorking,
                             reviewableIDs: Set(group.filter { TranslationReview.canReview(result, blockID: $0.id) }.map(\.id)))
                     } else {
-                    HStack(alignment: .top, spacing: 10) {
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Group {
                         if let field = block.fieldParts {
                             HStack(alignment: .firstTextBaseline, spacing: 16) {
@@ -156,8 +221,10 @@ struct ResultContent: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .contentShape(Rectangle())
                     if let onReviewBlock, TranslationReview.canReview(result, blockID: block.id) {
+                        // The 44-point target reaches past the line, so a short
+                        // block stays as tall as its text.
                         TranslationReviewButton(block: block) { onReviewBlock(block.id) }
-                            .disabled(isWorking)
+                            .disabled(isWorking).padding(.vertical, -10)
                     }
                     }
                     }
@@ -221,13 +288,13 @@ private struct TranslationInformationView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("翻译") {
+                Section {
                     LabeledContent("目标语言", value: result.target)
                     LabeledContent("模式", value: result.mode?.title ?? "翻译")
                     LabeledContent(hasReviews ? "初次翻译引擎" : "引擎", value: result.engine)
                     if result.usedCache == true { Label("复用译文", systemImage: "checkmark.circle") }
-                }
-                Section(hasReviews ? "初次翻译耗时" : "耗时") {
+                } header: { Text("翻译").sectionTitle() }
+                Section {
                     if let seconds = result.preparationSeconds { LabeledContent("图片／语言准备", value: duration(seconds)) }
                     if let seconds = result.recognitionSeconds {
                         LabeledContent("本机识字", value: duration(max(0, seconds - (result.refinementSeconds ?? 0))))
@@ -235,23 +302,33 @@ private struct TranslationInformationView: View {
                     if let seconds = result.refinementSeconds { LabeledContent("局部复核", value: duration(seconds)) }
                     if let seconds = result.requestSeconds { LabeledContent(result.usedCache == true ? "读取缓存" : "翻译", value: duration(seconds)) }
                     LabeledContent("本次总计", value: duration(result.elapsed))
-                }.accessibilityIdentifier("translationTimings")
-                if let warning = result.warning { Section("提示") { Text(warning).font(.subheadline) } }
-            }.navigationTitle("翻译信息").navigationBarTitleDisplayMode(.inline)
+                } header: { Text(hasReviews ? "初次翻译耗时" : "耗时").sectionTitle() }
+                .accessibilityIdentifier("translationTimings")
+                if let warning = result.warning {
+                    Section { Text(warning).font(.subheadline) } header: { Text("提示").sectionTitle() }
+                }
+            }.settingsList().navigationTitle("翻译信息").navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .confirmationAction) { Button("完成") { dismiss() } } }
         }
     }
     private func duration(_ seconds: TimeInterval) -> String { String(format: "%.2f 秒", seconds) }
 }
 
+/// A quiet icon beside each block. It sits on the block's first text line, so a
+/// page of short blocks no longer reads as a column of buttons.
 struct TranslationReviewButton: View {
+    @Environment(\.appTheme) private var theme
     let block: ReadingBlock
     let action: () -> Void
+    private var reviewed: Bool { block.reviewEngine != nil }
     var body: some View {
         Button(action: action) {
-            Label(block.reviewEngine == nil ? "核对" : "已核对", systemImage: block.reviewEngine == nil ? "text.magnifyingglass" : "checkmark.circle")
-                .font(.caption).frame(minHeight: 44)
-        }.buttonStyle(.plain).foregroundStyle(.secondary)
+            Text(Image(systemName: reviewed ? "checkmark.circle.fill" : "text.magnifyingglass"))
+                .font(.callout)
+                .foregroundStyle(reviewed ? AnyShapeStyle(theme.accent) : AnyShapeStyle(.tertiary))
+                .frame(width: 44, height: 44).contentShape(Rectangle())
+        }.buttonStyle(.plain)
+            .accessibilityValue(reviewed ? "已核对" : "")
             .accessibilityLabel("核对第\(block.id)\(block.tableCells == nil ? "段" : "行")译文")
             .accessibilityIdentifier("reviewTranslationBlock-\(block.id)")
     }
@@ -275,7 +352,7 @@ struct RecentResultView: View {
             List {
                 if let error { ErrorBanner(message: error) }
                 ForEach(days, id: \.self) { day in
-                    Section(day.formatted(.dateTime.month().day())) {
+                    Section {
                         ForEach(filtered.filter { Calendar.current.isDate($0.date, inSameDayAs: day) }) { result in
                             NavigationLink {
                                 RecentResultDetailView(store: store, resultID: result.id)
@@ -295,9 +372,10 @@ struct RecentResultView: View {
                                     }
                                 }
                         }
-                    }
+                    } header: { Text(day.formatted(.dateTime.month().day())).sectionTitle() }
                 }
             }
+            .groupedListSpacing()
             .overlay {
                 if filtered.isEmpty {
                     ContentUnavailableView(query.isEmpty ? "还没有翻译记录" : "没有匹配的记录", systemImage: query.isEmpty ? "clock" : "magnifyingglass",
@@ -343,6 +421,32 @@ struct RecentResultDetailView: View {
                 TranslationBlockReviewView(selection: selection, imageData: nil, store: store) { expected, updated in
                     guard try store.replaceRecordedResult(expected, with: updated) else { throw TranslationError.reviewConflict }
                 }.readerSheet()
+            }
+    }
+}
+
+/// Pages that keep a draft hide the back button while it differs from what is
+/// saved, so leaving never drops changes silently.
+struct UnsavedChangesGuard: ViewModifier {
+    let hasChanges: Bool
+    let save: () -> Bool
+    @Environment(\.dismiss) private var dismiss
+    @State private var asking = false
+
+    func body(content: Content) -> some View {
+        content
+            .navigationBarBackButtonHidden(hasChanges)
+            .toolbar {
+                if hasChanges {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("取消") { asking = true }.accessibilityIdentifier("discardChangesButton")
+                    }
+                }
+            }
+            .confirmationDialog("有尚未保存的更改", isPresented: $asking, titleVisibility: .visible) {
+                Button("保存") { if save() { dismiss() } }
+                Button("放弃更改", role: .destructive) { dismiss() }
+                Button("继续编辑", role: .cancel) {}
             }
     }
 }

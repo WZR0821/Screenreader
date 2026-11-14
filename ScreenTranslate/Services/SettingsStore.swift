@@ -11,6 +11,9 @@ final class SettingsStore: ObservableObject {
     }()
     @Published private(set) var settings: AppSettings
     @Published private(set) var history: [TranslationResult] = []
+    /// Provider entries that have an API key. Filled by `refreshKeys()`, which
+    /// the settings pages call; nothing reads the keychain at launch.
+    @Published private(set) var keyedIDs: Set<String> = []
     var recentResult: TranslationResult? { history.first }
     let keychain: KeychainStore
     private let defaults: UserDefaults
@@ -41,9 +44,8 @@ final class SettingsStore: ObservableObject {
             _ = try APIClient.endpoint(configuration: value.configuration)
         }
         let data = try JSONEncoder().encode(value)
-        for provider in AIProvider.allCases {
-            if let key = keys[provider.rawValue] { try keychain.write(key, provider: provider) }
-        }
+        // Keys are stored under the provider entry's id; an empty key removes it.
+        for (account, key) in keys { try keychain.write(key, account: account) }
         if !value.saveRecentResult { try clearRecent() }
         else if value.historyLimit != settings.historyLimit {
             let trimmed = Array(try loadHistory().prefix(value.historyLimit))
@@ -52,13 +54,26 @@ final class SettingsStore: ObservableObject {
         }
         defaults.set(data, forKey: settingsKey)
         settings = value
+        if !keys.isEmpty { refreshKeys() }
     }
 
     func credentials() throws -> (AppSettings, String) {
         let current = settings
-        let key = try keychain.read(provider: current.provider)
+        let key = try keychain.read(account: current.activeID)
         guard !key.isEmpty else { throw TranslationError.missingKey }
         return (current, key)
+    }
+
+    /// The saved key of one provider entry; empty when there is none.
+    func apiKey(for entryID: String) -> String { (try? keychain.read(account: entryID)) ?? "" }
+
+    /// Re-reads which provider entries have a key.
+    func refreshKeys() {
+        var ids = Set(AIProvider.allCases.map(\.rawValue)).union(settings.configurations.keys)
+            .union(settings.providerList ?? [])
+        ids.insert(settings.activeID)
+        let keyed = ids.filter { !apiKey(for: $0).isEmpty }
+        if keyed != keyedIDs { keyedIDs = keyed }
     }
 
     func updateLanguages(source: SourceLanguage, target: TargetLanguage) throws {
@@ -98,7 +113,7 @@ final class SettingsStore: ObservableObject {
         guard settings.allowedModes.contains(mode) else { throw TranslationError.modeUnavailable }
         var current = settings
         current.mode = mode
-        let key = try keychain.read(provider: current.provider)
+        let key = try keychain.read(account: current.activeID)
         guard !key.isEmpty else { throw TranslationError.missingKey }
         return (current, key)
     }
@@ -171,5 +186,46 @@ final class SettingsStore: ObservableObject {
         if !saved.isEmpty && !FileManager.default.fileExists(atPath: historyURL.path) {
             try? writeHistory(history)
         }
+    }
+}
+
+// MARK: - Provider entries
+
+extension SettingsStore {
+    /// Entries shown under 供应商.
+    var listedProviderIDs: [String] { settings.listedProviderIDs(keyed: keyedIDs) }
+
+    /// Applies one edit to the saved settings.
+    func change(keys: [String: String] = [:], _ edit: (inout AppSettings) -> Void) throws {
+        var value = settings
+        edit(&value)
+        try save(value, keys: keys)
+    }
+
+    /// Adds a provider with its key. It becomes the one in use only when the
+    /// current one has no key yet, so adding never changes a working setup.
+    func addProvider(_ kind: AIProvider, configuration: ProviderConfiguration, key: String) throws -> (id: String, activated: Bool) {
+        // `save` only checks the address of the entry in use; a new one is checked here.
+        _ = try APIClient.endpoint(configuration: configuration)
+        refreshKeys()
+        var value = settings
+        let previous = value.activeID
+        let id = value.addProvider(kind, configuration: configuration, keyed: keyedIDs)
+        let activated = !keyedIDs.contains(previous)
+        if activated {
+            value.activate(id)
+            // The untouched default provider was never set up; it leaves the list.
+            if previous != id, value.configurations[previous] == nil { value.providerList?.removeAll { $0 == previous } }
+        }
+        try save(value, keys: [id: key])
+        return (id, activated)
+    }
+
+    /// Removes a provider together with its key.
+    func removeProvider(_ entryID: String) throws {
+        refreshKeys()
+        var value = settings
+        guard value.removeProvider(entryID, keyed: keyedIDs) else { return }
+        try save(value, keys: [entryID: ""])
     }
 }

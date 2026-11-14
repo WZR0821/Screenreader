@@ -87,7 +87,7 @@ struct TranslationBlockReviewView: View {
                                        : "对照原图和原文核对译文。修改后只重译这一段，其他译文保留。"))
                         .font(.subheadline).foregroundStyle(.secondary)
                 }
-                Section("原图区域") {
+                Section {
                     if let data = model.crop, let image = UIImage(data: data) {
                         Button { editing = nil; showCrop = true } label: {
                             Image(uiImage: image).resizable().scaledToFit().frame(maxWidth: .infinity, maxHeight: 280)
@@ -97,22 +97,24 @@ struct TranslationBlockReviewView: View {
                     } else if model.loadingCrop { ProgressView("正在读取原图区域") }
                     else { Text("此处没有可用的原图区域，可直接核对下方原文。翻译记录不保存原图。")
                         .font(.caption).foregroundStyle(.secondary) }
-                }
+                } header: { Text("原图区域").sectionTitle() }
                 if model.isTable {
                     ForEach(model.drafts.indices, id: \.self) { column in
-                        Section("第 \(column + 1) 列") {
+                        Section {
                             sourceEditor(column)
                             Text("当前译文").font(.caption).foregroundStyle(.secondary)
                             translatedText(model.selection.block?.tableCells?[column] ?? "")
                                 .accessibilityIdentifier("reviewCurrentCell-\(column)")
-                        }
+                        } header: { Text("第 \(column + 1) 列").sectionTitle() }
                     }
                 } else {
-                    Section(allowsRetranslation ? "原文（可修正）" : "原文") { sourceEditor(0) }
-                    Section("当前译文 · \(model.selection.result.target)") {
+                    Section { sourceEditor(0) } header: {
+                        Text(allowsRetranslation ? "原文（可修正）" : "原文").sectionTitle()
+                    }
+                    Section {
                         translatedText(model.selection.block?.text ?? "")
                             .accessibilityIdentifier("reviewCurrentTranslation")
-                    }
+                    } header: { Text("当前译文 · \(model.selection.result.target)").sectionTitle() }
                 }
                 if let engine = model.selection.block?.reviewEngine {
                     Section {
@@ -122,14 +124,14 @@ struct TranslationBlockReviewView: View {
                 }
                 if let error = model.error { Section { ErrorBanner(message: error) } }
                 if allowsRetranslation { Section {
-                    Text("重译使用 \(store.settings.provider.title) · \(store.settings.configuration.model)，目标语言为\(model.selection.result.target)。仅发送本段原文。")
+                    Text("重译使用 \(store.settings.engineLabel)，目标语言为\(model.selection.result.target)。仅发送本段原文。")
                         .font(.caption).foregroundStyle(.secondary).accessibilityIdentifier("reviewRequestScope")
                     if model.correctedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         Text("请填写原文后再重译。表格中的单个单元格可以留空。")
                             .font(.caption).foregroundStyle(.secondary)
                     }
                 } }
-            }.navigationTitle("核对译文").navigationBarTitleDisplayMode(.inline)
+            }.groupedListSpacing().navigationTitle("核对译文").navigationBarTitleDisplayMode(.inline)
                 .scrollDismissesKeyboard(.interactively)
                 .safeAreaInset(edge: .bottom) {
                     if allowsRetranslation {

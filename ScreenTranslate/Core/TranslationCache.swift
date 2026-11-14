@@ -28,10 +28,11 @@ actor TranslationCache {
                 "text": text, "source": settings.source.rawValue, "target": settings.target.rawValue,
                 "blocks": String(decoding: try encoder.encode(readingBlocks), as: UTF8.self)]))
         }
-        let config = String(decoding: try encoder.encode(settings.configuration), as: UTF8.self)
+        // Only what a request depends on: the other models kept under the provider do not matter.
+        let config = String(decoding: try encoder.encode(settings.configuration.requestFields), as: UTF8.self)
         let blocks = String(decoding: try encoder.encode(readingBlocks), as: UTF8.self)
         let identity = ["version": TranslationPrompts.revision, "engine": engine, "text": text, "blocks": blocks,
-            "provider": settings.provider.rawValue, "configuration": config, "source": settings.source.rawValue,
+            "provider": settings.activeID, "configuration": config, "source": settings.source.rawValue,
             "target": settings.target.rawValue, "mode": settings.mode.rawValue, "tone": settings.tone.rawValue,
             "prompt": settings.customPrompt, "glossary": settings.glossary, "fromImage": String(fromImageText),
             "credential": digest(Data(apiKey.trimmingCharacters(in: .whitespacesAndNewlines).utf8))]

@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import plistlib
+import re
 import subprocess
 import zipfile
 import shutil
@@ -22,8 +23,11 @@ app = Path(staging.name) / args.app.name
 shutil.copytree(args.app.resolve(), app, symlinks=True)
 info = plistlib.loads((app / 'Info.plist').read_bytes())
 assert info['DTPlatformName'] == 'iphoneos', 'A device build is required'
-assert info['CFBundleShortVersionString'] == '1.3.0'
-assert info['CFBundleVersion'] == '27'
+generator = (Path(__file__).resolve().parent / 'generate_project.py').read_text()
+expected = re.search(r"'MARKETING_VERSION': '([^']+)', 'CURRENT_PROJECT_VERSION': '([^']+)'", generator)
+assert expected, 'Version settings not found in generate_project.py'
+assert info['CFBundleShortVersionString'] == expected.group(1), info['CFBundleShortVersionString']
+assert info['CFBundleVersion'] == expected.group(2), info['CFBundleVersion']
 assert info['CFBundleDisplayName'] == '读屏'
 assert info['CFBundleName'] == 'Screenreader'
 assert info.get('NSCameraUsageDescription'), 'Camera privacy description is required'

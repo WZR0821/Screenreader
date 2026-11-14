@@ -8,10 +8,10 @@ struct UsageGuideView: View {
                     Label("操作按钮 · 三步设置", systemImage: "button.programmable")
                 }.accessibilityIdentifier("actionButtonInstructionsLink")
             }
-            Section("日常使用") {
+            Section {
                 DisclosureGroup("翻译服务") {
                     Text("首次使用默认译为中文。翻译页顶部可直接选择原文和目标语言；选定原文语言后，可点中间按钮交换两种语言。")
-                    Text("在“设置 → 翻译偏好”选择 AI 翻译或系统翻译。系统翻译无需密钥，仅支持 App 内快速模式；API 支持三种模式，请在“API 设置”填写服务商、模型与密钥。")
+                    Text("在“设置 → 翻译偏好”选择 AI 翻译或系统翻译。系统翻译无需密钥，仅支持 App 内快速模式；API 支持三种模式，请在“AI 大模型”添加供应商并填写密钥。")
                 }
                 DisclosureGroup("文字与图片") {
                     Text("快速模式完整简译；专业模式保留标题、段落、列表和价格关系，两者只发送文字。识图模式发送压缩图片，解释文字及画面大意。")
@@ -31,7 +31,7 @@ struct UsageGuideView: View {
                     Text("在“模式提示词”分别设置三种模式的要求。语言和模式同步用于 App 与操作按钮。系统翻译不使用提示词或术语表。")
                     Text("API 密钥保存在本机钥匙串；记录只保存文字，不保存截图。只有识图模式上传图片，服务商可能按用量收费。")
                 }
-            }
-        }.font(.subheadline).navigationTitle("使用说明").navigationBarTitleDisplayMode(.inline)
+            } header: { Text("日常使用").sectionTitle() }
+        }.settingsList().font(.subheadline).navigationTitle("使用说明").navigationBarTitleDisplayMode(.inline)
     }
 }

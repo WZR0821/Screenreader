@@ -50,8 +50,9 @@ enum TranslationReview {
         } else {
             text = try TextPreparation.validated(correctedText)
         }
-        return ReadingBlock(id: block.id, text: text, kind: block.kind, sourceBox: block.sourceBox,
-                            sourceVertical: block.sourceVertical, sourceCellBoxes: block.sourceCellBoxes)
+        var source = ReadingBlock(id: block.id, text: text, kind: block.kind)
+        source.copyGeometry(from: block)
+        return source
     }
 
     static func replacing(in result: TranslationResult, blockID: Int, with replacement: ReadingBlock) throws -> TranslationResult {
@@ -68,7 +69,11 @@ enum TranslationReview {
         guard let index = updated.blocks?.firstIndex(where: { $0.id == blockID }) else {
             throw TranslationError.reviewUnavailable
         }
-        updated.blocks?[index] = replacement
+        // Line metrics are derived from the same OCR as the box; keep them even
+        // when a caller built the replacement from the box alone.
+        var stored = replacement
+        stored.sourceLineHeight = source.sourceLineHeight; stored.sourceLineCount = source.sourceLineCount
+        updated.blocks?[index] = stored
         updated.translated = updated.blocks!.map(\.text).joined(separator: "\n\n")
         updated.original = sourceBlocks(in: updated).map(\.text).joined(separator: "\n\n")
         // A mixed result is no longer a cache hit for the original full document.
@@ -79,8 +84,9 @@ enum TranslationReview {
     static func sourceBlocks(in result: TranslationResult) -> [ReadingBlock] {
         (result.blocks ?? []).compactMap { block in
             guard let original = block.original else { return nil }
-            return ReadingBlock(id: block.id, text: original, kind: block.kind, sourceBox: block.sourceBox,
-                                sourceVertical: block.sourceVertical, sourceCellBoxes: block.sourceCellBoxes)
+            var source = ReadingBlock(id: block.id, text: original, kind: block.kind)
+            source.copyGeometry(from: block)
+            return source
         }
     }
 }

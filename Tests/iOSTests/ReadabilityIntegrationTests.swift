@@ -43,6 +43,7 @@ final class ReadabilityIntegrationTests: XCTestCase {
         let session = URLSession(configuration: config)
         defer { session.invalidateAndCancel(); StubURLProtocol.registry.set(nil) }
         let counter = RequestCounter()
+        let sentIDs = SentBlockIDs()
         StubURLProtocol.registry.set { request in
             counter.increment()
             let body = try JSONSerialization.jsonObject(with: requestBody(request)) as! [String: Any]
@@ -52,8 +53,14 @@ final class ReadabilityIntegrationTests: XCTestCase {
             for token in ["特製ソース", "1,100", "数量", "Pepsi", "Ginger", "Melon", "Orange Juice", "カート"] {
                 XCTAssertTrue(document.blocks.contains { $0.text.contains(token) }, "Entire screen must reach API: \(token)")
             }
+            sentIDs.set(document.blocks.map(\.id))
             // Transport fixture echoes every block; this tests completeness, not translation quality.
-            let blocks = document.blocks.reversed().map { ProfessionalLayout.Block(id: $0.id, text: "译文 \($0.id)：" + $0.text) }
+            // Kana is dropped so the echo reads as Chinese: a kana-heavy reply for a Chinese
+            // target is rejected as the wrong language (1.3.1 output-language check).
+            let blocks = document.blocks.reversed().map { block in
+                let echoed = String(String.UnicodeScalarView(block.text.unicodeScalars.filter { !(0x3040...0x30FF).contains($0.value) }))
+                return ProfessionalLayout.Block(id: block.id, text: "译文 \(block.id)：" + echoed)
+            }
             let response = String(decoding: try JSONEncoder().encode(ProfessionalLayout.Document(blocks: blocks)), as: UTF8.self)
             let data = try JSONSerialization.data(withJSONObject: ["choices": [["finish_reason": "stop", "message": ["content": response]]]])
             return (200, data)
@@ -63,9 +70,15 @@ final class ReadabilityIntegrationTests: XCTestCase {
         let result = try await TranslationPipeline(client: APIClient(session: session)).image(Data(contentsOf: url), settings: settings, key: "fixture-key")
         XCTAssertEqual(counter.value, 1)
         let html = String(decoding: TranslationDocument.html(result, settings: settings), as: UTF8.self)
-        for token in ["特製ソース", "1,100", "数量", "Pepsi", "Ginger", "Melon", "Orange Juice", "カート"] {
+        for token in ["特製", "1,100", "数量", "Pepsi", "Ginger", "Melon", "Orange Juice"] {
             XCTAssertTrue(result.translated.contains(token), token)
             XCTAssertTrue(html.contains(token), token)
+        }
+        // Every block sent to the API comes back into the reader and the full document.
+        XCTAssertFalse(sentIDs.value.isEmpty)
+        for id in sentIDs.value {
+            XCTAssertTrue(result.translated.contains("译文 \(id)："), "block \(id)")
+            XCTAssertTrue(html.contains("译文 \(id)："), "block \(id)")
         }
         XCTAssertFalse(html.contains("line-clamp")); XCTAssertFalse(html.contains("max-height"))
     }
@@ -185,4 +198,11 @@ final class ReadabilityIntegrationTests: XCTestCase {
         do { _ = try await TranslationPipeline(client: APIClient(session: session)).image(data, settings: AppSettings(), key: "fixture-key"); XCTFail() }
         catch { XCTAssertEqual(error as? TranslationError, .noText) }
     }
+}
+
+private final class SentBlockIDs: @unchecked Sendable {
+    private let lock = NSLock()
+    private var ids: [Int] = []
+    func set(_ value: [Int]) { lock.lock(); defer { lock.unlock() }; ids = value }
+    var value: [Int] { lock.lock(); defer { lock.unlock() }; return ids }
 }

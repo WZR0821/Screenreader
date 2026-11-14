@@ -8,6 +8,7 @@ struct ImageTranslationView: View {
     let review: (Int) -> Void
     @Environment(\.appTheme) private var theme
     @State private var image: UIImage?
+    @State private var pixels: ImageOverlayPalette.Pixels?
     @State private var failed = false
     @State private var showsOriginal = false
     @State private var expanded = false
@@ -28,12 +29,12 @@ struct ImageTranslationView: View {
                     .disabled(image == nil)
             }.buttonStyle(.plain).foregroundStyle(.secondary)
             if let image {
-                ImageTranslationCanvas(image: image, items: ImageTranslationLayout.items(in: result),
+                ImageTranslationCanvas(image: image, pixels: pixels, items: ImageTranslationLayout.items(in: result),
                     original: showsOriginal, reader: theme.settings.reader, target: result.target,
                     enabled: !isWorking, tapped: review)
                     .aspectRatio(image.size, contentMode: .fit)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(.primary.opacity(0.06)))
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(.primary.opacity(0.06)))
                     .accessibilityIdentifier("imageTranslationCanvas")
                     .accessibilityHidden(expanded)
             } else if failed {
@@ -43,17 +44,20 @@ struct ImageTranslationView: View {
             }
         }
         .task(id: data) {
-            image = nil; failed = false
-            let prepared = await Task.detached(priority: .userInitiated) { SourceImagePresentation.prepare(data) }.value
+            image = nil; pixels = nil; failed = false
+            let prepared = await Task.detached(priority: .userInitiated) { () -> (SourceImagePresentation?, ImageOverlayPalette.Pixels?) in
+                let presentation = SourceImagePresentation.prepare(data)
+                return (presentation, presentation.flatMap { ImageOverlayPalette.Pixels(data: $0.data) })
+            }.value
             guard !Task.isCancelled else { return }
-            image = prepared.flatMap { UIImage(data: $0.data) }; failed = image == nil
+            image = prepared.0.flatMap { UIImage(data: $0.data) }; pixels = prepared.1; failed = image == nil
         }
         .fullScreenCover(isPresented: $expanded, onDismiss: {
             if let id = pendingReview { pendingReview = nil; review(id) }
         }) {
             if let image {
                 NavigationStack {
-                    ZoomedTranslationImage(image: image, items: ImageTranslationLayout.items(in: result),
+                    ZoomedTranslationImage(image: image, pixels: pixels, items: ImageTranslationLayout.items(in: result),
                         original: showsOriginal, reader: theme.settings.reader, target: result.target,
                         enabled: !isWorking) { id in pendingReview = id; expanded = false }
                         .background(Theme.background)
@@ -79,6 +83,7 @@ struct ImageTranslationView: View {
 
 struct ImageTranslationCanvas: UIViewRepresentable {
     let image: UIImage
+    var pixels: ImageOverlayPalette.Pixels?
     let items: [ImageTranslationLayout.Item]
     let original: Bool
     let reader: ReaderPreferences
@@ -87,7 +92,8 @@ struct ImageTranslationCanvas: UIViewRepresentable {
     let tapped: (Int) -> Void
     func makeUIView(context: Context) -> ImageTranslationCanvasView { ImageTranslationCanvasView() }
     func updateUIView(_ view: ImageTranslationCanvasView, context: Context) {
-        view.configure(image: image, items: items, original: original, reader: reader, target: target, enabled: enabled, tapped: tapped)
+        view.configure(image: image, pixels: pixels, items: items, original: original, reader: reader, target: target,
+                       enabled: enabled, tapped: tapped)
     }
 }
 
@@ -95,6 +101,7 @@ final class ImageTranslationCanvasView: UIView {
     private let photo = UIImageView()
     private var tiles: [ImageTranslationTile] = []
     private var items: [ImageTranslationLayout.Item] = []
+    private var pixels: ImageOverlayPalette.Pixels?
     private var tapped: ((Int) -> Void)?
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -103,17 +110,26 @@ final class ImageTranslationCanvasView: UIView {
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
-    func configure(image: UIImage, items: [ImageTranslationLayout.Item], original: Bool,
+    func configure(image: UIImage, pixels: ImageOverlayPalette.Pixels? = nil, items: [ImageTranslationLayout.Item], original: Bool,
                    reader: ReaderPreferences, target: String, enabled: Bool, tapped: @escaping (Int) -> Void) {
         photo.image = image; self.tapped = tapped
         let visibleItems = original ? [] : items
-        if self.items != visibleItems {
+        let rebuilt = self.items != visibleItems
+        if rebuilt {
             tiles.forEach { $0.isHidden = true; $0.removeFromSuperview() }
             self.items = visibleItems
             tiles = visibleItems.map { item in
                 let tile = ImageTranslationTile(item: item)
                 tile.addTarget(self, action: #selector(selectTile(_:)), for: .touchUpInside)
                 addSubview(tile); return tile
+            }
+        }
+        if rebuilt || self.pixels != pixels {
+            self.pixels = pixels
+            // Read once per image and item; drawing never touches the pixels.
+            for tile in tiles {
+                tile.palette = pixels.flatMap { ImageOverlayPalette.sample($0, box: tile.item.box, line: tile.item.lineHeight,
+                                                                           vertical: tile.item.vertical) }
             }
         }
         for tile in tiles {
@@ -130,12 +146,10 @@ final class ImageTranslationCanvasView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews(); photo.frame = bounds
         for tile in tiles {
-            let box = tile.item.box
-            let source = CGRect(x: box.x * bounds.width, y: (1 - box.y - box.height) * bounds.height,
-                                width: box.width * bounds.width, height: box.height * bounds.height)
-            // Vision bounds hug glyph ink, not font line height. A small margin
-            // covers antialiased edges and gives short single-line labels room.
-            tile.frame = source.insetBy(dx: -2, dy: -2).intersection(bounds)
+            // Vision bounds hug the glyphs; the tile adds a margin in proportion
+            // to the source line that covers antialiased edges.
+            let placement = ImageTranslationLayout.placement(of: tile.item, in: bounds.size)
+            tile.frame = placement.tile; tile.placement = placement.local
         }
     }
     @objc private func selectTile(_ tile: ImageTranslationTile) { tapped?(tile.item.blockID) }
@@ -144,6 +158,15 @@ final class ImageTranslationCanvasView: UIView {
 final class ImageTranslationTile: UIControl {
     let item: ImageTranslationLayout.Item
     var showFurigana = false { didSet { if oldValue != showFurigana { setNeedsDisplay() } } }
+    /// Measured from the tile's own corner.
+    var placement: ImageTranslationLayout.Placement? { didSet { if oldValue != placement { setNeedsDisplay() } } }
+    /// Colours of the screenshot under this item; nil until the image is read.
+    var palette: ImageOverlayPalette? {
+        didSet {
+            guard oldValue != palette else { return }
+            backgroundColor = palette.map { UIColor(rgb: $0.background) } ?? .systemBackground; setNeedsDisplay()
+        }
+    }
     private lazy var readings = JapaneseFurigana.annotations(for: item.text)
     init(item: ImageTranslationLayout.Item) {
         self.item = item; super.init(frame: .zero)
@@ -157,57 +180,115 @@ final class ImageTranslationTile: UIControl {
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     override func draw(_ rect: CGRect) {
-        guard let context = UIGraphicsGetCurrentContext(), bounds.width > 0, bounds.height > 0 else { return }
-        let area = bounds.insetBy(dx: min(1, bounds.width * 0.03), dy: min(0.5, bounds.height * 0.02))
-        let color = UIColor.label.resolvedColor(with: traitCollection)
+        guard let context = UIGraphicsGetCurrentContext(), let placement, bounds.width > 0, bounds.height > 0 else { return }
+        let color = palette.map { UIColor(rgb: $0.ink) } ?? UIColor.label.resolvedColor(with: traitCollection)
         let annotations = showFurigana ? readings : []
-        let fitted = ImageOverlayTypography.fitted(item: item, size: area.size, color: color, annotations: annotations)
+        let fitted = ImageOverlayTypography.fitted(item: item, placement: placement, color: color, annotations: annotations)
         context.saveGState(); context.textMatrix = .identity
-        context.translateBy(x: area.minX, y: bounds.height - area.minY); context.scaleBy(x: 1, y: -1)
+        // CoreText draws upwards from the bottom-left corner of the frame's path.
+        context.translateBy(x: fitted.rect.minX, y: fitted.rect.maxY); context.scaleBy(x: 1, y: -1)
         CTFrameDraw(fitted.frame, context); context.restoreGState()
         if fitted.truncated {
             let dot = CGRect(x: max(0, bounds.width - 7), y: max(0, bounds.height - 7), width: 7, height: 7)
-            UIColor.systemBackground.setFill(); context.fill(dot)
-            UIColor.secondaryLabel.setFill(); context.fillEllipse(in: dot.insetBy(dx: 2, dy: 2))
+            (backgroundColor ?? .systemBackground).setFill(); context.fill(dot)
+            color.withAlphaComponent(0.6).setFill(); context.fillEllipse(in: dot.insetBy(dx: 2, dy: 2))
         }
     }
 }
 
 enum ImageOverlayTypography {
-    struct Fitted { let frame: CTFrame; let fontSize: CGFloat; let truncated: Bool }
-    static func fitted(item: ImageTranslationLayout.Item, size: CGSize, color: UIColor,
+    struct Fitted {
+        let frame: CTFrame
+        /// Where the frame's path sits, in the tile's own top-left coordinates.
+        let rect: CGRect
+        let fontSize: CGFloat
+        /// Fixed distance between lines; nil keeps CoreText's spacing, which
+        /// makes room for furigana.
+        let lineHeight: CGFloat?
+        let truncated: Bool
+    }
+
+    /// - Parameter placement: measured from the tile's own corner (`Placement.local`).
+    static func fitted(item: ImageTranslationLayout.Item, placement: ImageTranslationLayout.Placement, color: UIColor,
                        annotations: [JapaneseFurigana.Annotation] = []) -> Fitted {
-        let path = CGPath(rect: CGRect(origin: .zero, size: size), transform: nil)
-        let attributes: CFDictionary? = item.vertical
+        let text = placement.text, length = (item.text as NSString).length
+        let alignment: NSTextAlignment
+        switch placement.alignment { case .leading: alignment = .natural; case .center: alignment = .center; case .trailing: alignment = .right }
+        let progression: CFDictionary? = item.vertical
             ? [kCTFrameProgressionAttributeName: CTFrameProgression.rightToLeft.rawValue] as CFDictionary : nil
-        func frame(_ fontSize: CGFloat) -> CTFrame {
+        func frame(_ fontSize: CGFloat, lineHeight: CGFloat?, size: CGSize) -> CTFrame {
             var reader = ReaderPreferences(); reader.customFontSize = 12; reader.customLineSpacing = 0
-            let value = NSMutableAttributedString(attributedString: RubyTextLayout.attributed(item.text,
-                annotations: annotations, reader: reader, scale: Double(fontSize / 12), heading: false, semibold: item.heading))
-            value.addAttribute(.foregroundColor, value: color, range: NSRange(location: 0, length: value.length))
+            let value = NSMutableAttributedString(attributedString: RubyTextLayout.attributed(item.text, annotations: annotations,
+                reader: reader, scale: Double(fontSize / 12), heading: false, semibold: item.heading, alignment: alignment))
+            let all = NSRange(location: 0, length: value.length)
+            value.addAttribute(.foregroundColor, value: color, range: all)
+            if let lineHeight {
+                let paragraph = NSMutableParagraphStyle(); paragraph.alignment = alignment
+                paragraph.minimumLineHeight = lineHeight; paragraph.maximumLineHeight = lineHeight
+                value.addAttribute(.paragraphStyle, value: paragraph, range: all)
+            }
             if item.vertical {
-                value.addAttribute(NSAttributedString.Key(kCTVerticalFormsAttributeName as String), value: true,
-                                   range: NSRange(location: 0, length: value.length))
+                value.addAttribute(NSAttributedString.Key(kCTVerticalFormsAttributeName as String), value: true, range: all)
             }
             let setter = CTFramesetterCreateWithAttributedString(value)
-            return CTFramesetterCreateFrame(setter, CFRange(), path, attributes)
+            return CTFramesetterCreateFrame(setter, CFRange(), CGPath(rect: CGRect(origin: .zero, size: size), transform: nil), progression)
         }
-        let length = (item.text as NSString).length
-        // Never grow beyond the source region; a dot signals overflow and tapping
-        // always exposes the complete text. Zoom scales both pixels and glyphs.
-        let maximum = min(28, max(8, (item.vertical ? size.width : size.height) * 0.82))
-        var low: CGFloat = 8, high = maximum
-        for _ in 0..<7 {
-            let middle = (low + high) / 2
-            if CTFrameGetVisibleStringRange(frame(middle)).length >= length { low = middle } else { high = middle }
+        func complete(_ frame: CTFrame) -> Bool { CTFrameGetVisibleStringRange(frame).length >= length }
+        /// The largest size in `range` that fits, trying the largest first.
+        func largest(_ range: ClosedRange<CGFloat>, _ fits: (CGFloat) -> Bool) -> CGFloat? {
+            if fits(range.upperBound) { return range.upperBound }
+            guard range.lowerBound < range.upperBound, fits(range.lowerBound) else { return nil }
+            var low = range.lowerBound, high = range.upperBound
+            for _ in 0..<6 { let middle = (low + high) / 2; if fits(middle) { low = middle } else { high = middle } }
+            return low
         }
-        let result = frame(low)
-        return .init(frame: result, fontSize: low, truncated: CTFrameGetVisibleStringRange(result).length < length)
+        // Never larger than the source text, so a shorter translation keeps
+        // the original size instead of swelling to fill the box.
+        let cap = max(1, placement.line * 0.85)
+
+        // Source size and source line positions: one translated line in each
+        // source line, so the text sits where the original did.
+        if !item.vertical, annotations.isEmpty, placement.single || placement.pitch != nil {
+            let rows = placement.single ? 1 : placement.rows
+            let pitch = placement.single ? text.height : placement.pitch ?? text.height
+            let slots = CGSize(width: text.width, height: pitch * CGFloat(rows) + 1)
+            if let size = largest(cap * 0.7...cap, { complete(frame($0, lineHeight: pitch, size: slots)) }) {
+                // CoreText centres the glyphs in a fixed line height; centre the
+                // first line on the first source line.
+                let top = placement.single ? text.minY : text.minY - (pitch - placement.line) / 2
+                return .init(frame: frame(size, lineHeight: pitch, size: slots),
+                             rect: CGRect(origin: CGPoint(x: text.minX, y: top), size: slots),
+                             fontSize: size, lineHeight: pitch, truncated: false)
+            }
+        }
+
+        // A longer translation: smaller type set close together, centred on a
+        // single source line or from the top of a paragraph.
+        let area = text.insetBy(dx: -placement.padding / 2, dy: -placement.padding / 2).intersection(placement.tile)
+        let natural = item.vertical || !annotations.isEmpty
+        func spacing(_ size: CGFloat) -> CGFloat? { natural ? nil : size * 1.2 }
+        let smallest = min(8, cap * 0.6)
+        let size = largest(smallest...max(smallest, cap)) { complete(frame($0, lineHeight: spacing($0), size: area.size)) } ?? smallest
+        let result = frame(size, lineHeight: spacing(size), size: area.size)
+        var rect = area
+        if placement.single, !item.vertical { rect.origin.y += max(0, (area.height - usedHeight(result, height: area.height)) / 2) }
+        return .init(frame: result, rect: rect, fontSize: size, lineHeight: spacing(size), truncated: !complete(result))
+    }
+
+    /// From the top of the frame to the bottom of its last line.
+    private static func usedHeight(_ frame: CTFrame, height: CGFloat) -> CGFloat {
+        let lines = CTFrameGetLines(frame) as! [CTLine]
+        guard let last = lines.last else { return 0 }
+        var origin = CGPoint.zero, descent: CGFloat = 0
+        CTFrameGetLineOrigins(frame, CFRange(location: lines.count - 1, length: 1), &origin)
+        _ = CTLineGetTypographicBounds(last, nil, &descent, nil)
+        return height - (origin.y - descent)
     }
 }
 
 private struct ZoomedTranslationImage: UIViewRepresentable {
     let image: UIImage
+    let pixels: ImageOverlayPalette.Pixels?
     let items: [ImageTranslationLayout.Item]
     let original: Bool
     let reader: ReaderPreferences
@@ -217,7 +298,8 @@ private struct ZoomedTranslationImage: UIViewRepresentable {
     func makeUIView(context: Context) -> TranslationZoomScrollView { TranslationZoomScrollView() }
     func updateUIView(_ view: TranslationZoomScrollView, context: Context) {
         view.ratio = image.size.height / image.size.width
-        view.canvas.configure(image: image, items: items, original: original, reader: reader, target: target, enabled: enabled, tapped: tapped)
+        view.canvas.configure(image: image, pixels: pixels, items: items, original: original, reader: reader, target: target,
+                              enabled: enabled, tapped: tapped)
         view.setNeedsLayout()
     }
 }

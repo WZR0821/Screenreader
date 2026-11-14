@@ -20,7 +20,7 @@ struct LanguagePacksView: View {
 
     var body: some View {
         Form {
-            Section("本机语言包") {
+            Section {
                 Picker("原文语言", selection: $source) {
                     ForEach(TargetLanguage.allCases) { Text($0.title).tag($0) }
                 }.accessibilityIdentifier("languagePackSourcePicker")
@@ -43,7 +43,7 @@ struct LanguagePacksView: View {
                 if let notice { Label(notice, systemImage: "checkmark.circle").foregroundStyle(.green) }
                 if let failure { ErrorBanner(message: failure) }
             }.font(.footnote)
-        }.navigationTitle("本机语言包").navigationBarTitleDisplayMode(.inline)
+        }.settingsList().navigationTitle("本机语言包").navigationBarTitleDisplayMode(.inline)
             .task(id: pair) { notice = nil; failure = nil; await refresh() }
             .onChange(of: scenePhase) { _, value in if value == .active { Task { await refresh() } } }
             .translationTask(configuration) { session in

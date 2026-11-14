@@ -4,7 +4,8 @@ final class ImageTranslationUITests: XCTestCase {
     @MainActor private func launch(_ extra: [String] = [], quick: Bool = false) -> XCUIApplication {
         continueAfterFailure = false
         let app = XCUIApplication()
-        app.launchArguments = ["--ui-test", "--fixture-image", "--fixture-layout", "--fixture-reader-collapsed"] + extra
+        // 原图直译 is off by default since 1.3.3; these tests cover the module itself.
+        app.launchArguments = ["--ui-test", "--fixture-image", "--fixture-layout", "--fixture-reader-collapsed", "--fixture-image-overlay"] + extra
         app.launch()
         if quick { app.segmentedControls["translationModePicker"].buttons["快速"].tap() }
         if extra.contains("--fixture-vertical") {

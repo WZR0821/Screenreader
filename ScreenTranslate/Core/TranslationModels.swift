@@ -352,6 +352,11 @@ struct AppSettings: Codable, Equatable {
     var configurations: [String: ProviderConfiguration] = [:]
     var source: SourceLanguage = .automatic
     var target: TargetLanguage = .simplifiedChinese
+    /// Which language text that is already in the target language goes to
+    /// instead: the first one in this order that is not the target.
+    var languagePriority: [TargetLanguage] = AppSettings.defaultLanguagePriority
+    /// Applies `languagePriority` when the source is 自动识别.
+    var smartTarget: Bool = true
     var tone: TranslationTone = .natural
     var glossary: String = ""
     // Keys use stable mode IDs; labels and the app name may change independently.
@@ -388,6 +393,7 @@ struct AppSettings: Codable, Equatable {
     mutating func normalizePreferences() {
         if translationService == .system { mode = .quick; askModeInShortcuts = false }
         if ![10, 30, 100].contains(historyLimit) { historyLimit = 30 }
+        languagePriority = Self.normalizedPriority(languagePriority)
         customAccent = customAccent.normalized
         reader.normalize()
         modePrompts = modePrompts.filter { TranslationMode(rawValue: $0.key) != nil && !$0.value.isEmpty }
@@ -410,6 +416,7 @@ struct AppSettings: Codable, Equatable {
         case mode, quickEngine, askModeInShortcuts, cacheTranslations, imageOverlay
         case translationService, historyLimit, appearance, accentTheme, customAccent, reader, modePrompts
         case activeProvider, providerList = "providers"
+        case languagePriority, smartTarget
     }
 
     init(from decoder: Decoder) throws {
@@ -426,6 +433,10 @@ struct AppSettings: Codable, Equatable {
         // Migrate those targets to Chinese while retaining all API configuration.
         let savedTarget = try values.decodeIfPresent(String.self, forKey: .target)
         target = savedTarget.flatMap(TargetLanguage.init(rawValue:)) ?? .simplifiedChinese
+        // Saved as raw strings so a language this version does not know is dropped, not fatal.
+        let savedPriority = try values.decodeIfPresent([String].self, forKey: .languagePriority) ?? []
+        languagePriority = savedPriority.compactMap(TargetLanguage.init(rawValue:))
+        smartTarget = try values.decodeIfPresent(Bool.self, forKey: .smartTarget) ?? true
         tone = try values.decodeIfPresent(TranslationTone.self, forKey: .tone) ?? .natural
         glossary = try values.decodeIfPresent(String.self, forKey: .glossary) ?? ""
         let legacyPrompt = try values.decodeIfPresent(String.self, forKey: .customPrompt) ?? ""
@@ -478,6 +489,8 @@ struct AppSettings: Codable, Equatable {
         try values.encode(appearance, forKey: .appearance); try values.encode(accentTheme, forKey: .accentTheme)
         try values.encode(customAccent.normalized, forKey: .customAccent)
         try values.encode(reader, forKey: .reader)
+        try values.encode(languagePriority.map(\.rawValue), forKey: .languagePriority)
+        try values.encode(smartTarget, forKey: .smartTarget)
     }
 
     mutating func swapLanguages() {
@@ -594,6 +607,8 @@ struct TranslationResult: Codable, Equatable, Identifiable {
     var blocks: [ReadingBlock]? = nil
     var usedCache: Bool? = nil
     var uncertainOCR: Bool? = nil
+    /// Why the target differs from the one selected, when 语言优先级 changed it.
+    var targetNote: String? = nil
 }
 
 struct TranslationOutput: Equatable, Sendable {

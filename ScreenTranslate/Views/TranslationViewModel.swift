@@ -204,7 +204,8 @@ final class TranslationViewModel: ObservableObject {
                     translated.recognitionSeconds = 0; translated.refinementSeconds = 0
                 } else {
                     translated = try await pipeline.text(input, settings: snapshot.0, key: snapshot.1,
-                        initialWarning: warning, readingBlocks: reviewedBlocks, forceRefresh: forceRefresh, onPartial: partial)
+                        initialWarning: warning, readingBlocks: reviewedBlocks, forceRefresh: forceRefresh,
+                        origin: image == nil ? .keyboard : .external, onPartial: partial)
                 }
                 try Task.checkCancellation()
                 guard id == jobID else { return }
@@ -230,7 +231,7 @@ final class TranslationViewModel: ObservableObject {
         error = TranslationError.systemUnavailable.localizedDescription
         return
         #else
-        let snapshot = store.settings
+        let selected = store.settings
         let input = text
         let image = imageData
         begin(image != nil && input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .recognizing : .translating, retainingResult: true)
@@ -242,7 +243,7 @@ final class TranslationViewModel: ObservableObject {
                 var recognitionSeconds: TimeInterval?
                 if clean.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, let image {
                     let start = Date()
-                    let recognized = try await pipeline.recognize(image, settings: snapshot, direction: textDirection)
+                    let recognized = try await pipeline.recognize(image, settings: selected, direction: textDirection)
                     clean = recognized.text
                     recognizedOCR = recognized; textCameFromOCR = true
                     recognitionSeconds = Date().timeIntervalSince(start)
@@ -252,6 +253,10 @@ final class TranslationViewModel: ObservableObject {
                 try Task.checkCancellation()
                 guard id == jobID else { return }
                 text = clean; phase = .translating
+                // Apple cannot translate a language into itself, so text already
+                // in the target language needs the next one in the priority order.
+                let resolution = selected.resolvingTarget(for: clean, origin: image == nil ? .keyboard : .external)
+                let snapshot = resolution.settings
                 let blocks = systemSourceBlocks(for: clean)
                 let generation = await pipeline.cache.generationToken()
                 let identity = try TranslationCache.key(text: clean, settings: snapshot, apiKey: "",
@@ -260,7 +265,8 @@ final class TranslationViewModel: ObservableObject {
                     try Task.checkCancellation()
                     guard id == jobID else { return }
                     finishSystem(id: id, text: clean, translated: hit.text, settings: snapshot,
-                        warning: warning, recognitionSeconds: recognitionSeconds, usedCache: true, blocks: hit.blocks)
+                        warning: warning, recognitionSeconds: recognitionSeconds, usedCache: true, blocks: hit.blocks,
+                        targetNote: resolution.note)
                     return
                 }
                 // Apple rejects a language translated into itself. Respect an
@@ -268,11 +274,12 @@ final class TranslationViewModel: ObservableObject {
                 if snapshot.source.targetLanguage == snapshot.target {
                     finishSystem(id: id, text: clean, translated: clean, settings: snapshot,
                                  warning: warning, recognitionSeconds: recognitionSeconds, cacheGeneration: generation,
-                                 blocks: blocks?.map { source in var block = source; block.original = source.text; return block })
+                                 blocks: blocks?.map { source in var block = source; block.original = source.text; return block },
+                                 targetNote: resolution.note)
                 } else {
                     systemRequest = .init(id: id, text: clean, settings: snapshot, started: startedAt,
                                           warning: warning, recognitionSeconds: recognitionSeconds, cacheGeneration: generation,
-                                          readingBlocks: blocks)
+                                          readingBlocks: blocks, targetNote: resolution.note)
                 }
             } catch is CancellationError {} catch {
                 if id == jobID { self.error = error.localizedDescription; phase = .idle }
@@ -288,7 +295,8 @@ final class TranslationViewModel: ObservableObject {
             finishSystem(id: id, text: request.text, translated: translated.text, settings: request.settings,
                          warning: request.warning, recognitionSeconds: request.recognitionSeconds,
                          preparationSeconds: translated.preparationSeconds, translationSeconds: translated.translationSeconds,
-                         cacheGeneration: request.cacheGeneration, blocks: translated.blocks)
+                         cacheGeneration: request.cacheGeneration, blocks: translated.blocks,
+                         targetNote: request.targetNote)
         case .failure(let failure):
             systemRequest = nil; phase = .idle
             error = failure is CancellationError ? "系统翻译已取消，可以重试。"
@@ -299,7 +307,7 @@ final class TranslationViewModel: ObservableObject {
     private func finishSystem(id: UUID, text: String, translated: String, settings: AppSettings,
                               warning: String?, recognitionSeconds: TimeInterval?, usedCache: Bool = false,
                               preparationSeconds: TimeInterval = 0, translationSeconds: TimeInterval = 0, cacheGeneration: Int = 0,
-                              blocks: [ReadingBlock]? = nil) {
+                              blocks: [ReadingBlock]? = nil, targetNote: String? = nil) {
         guard id == jobID else { return }
         var value = TranslationResult(original: text, translated: TranslationFormatting.normalized(translated),
             sourceLanguages: settings.source == .automatic ? LanguageDetector.describe(text) : settings.source.title,
@@ -312,6 +320,7 @@ final class TranslationViewModel: ObservableObject {
         value.refinementSeconds = recognitionSeconds == nil ? nil : recognizedOCR?.refinementSeconds
         value.uncertainOCR = recognizedOCR?.lowConfidence
         value.usedCache = usedCache
+        value.targetNote = targetNote
         value.preparationSeconds = preparationSeconds; value.requestSeconds = translationSeconds
         if settings.cacheTranslations, !usedCache,
            let identity = try? TranslationCache.key(text: text, settings: settings, apiKey: "",
@@ -327,6 +336,14 @@ final class TranslationViewModel: ObservableObject {
         if let reviewedSourceBlocks, !reviewedSourceBlocks.isEmpty { return reviewedSourceBlocks }
         guard let recognizedOCR, recognizedOCR.text == text, !recognizedOCR.blocks.isEmpty else { return nil }
         return recognizedOCR.blocks
+    }
+
+    /// What the main button would translate the current text into. The page
+    /// shows it before the request is sent, so a changed target is expected.
+    /// 识图 explains a picture and always answers in the selected language.
+    func targetResolution(_ settings: AppSettings) -> TargetResolution {
+        guard settings.mode != .visual else { return TargetResolution(settings: settings, requested: settings.target) }
+        return settings.resolvingTarget(for: text, origin: imageData == nil ? .keyboard : .external)
     }
 
     func clear() {

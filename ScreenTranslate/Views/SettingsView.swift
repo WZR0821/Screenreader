@@ -235,11 +235,15 @@ struct SettingsView: View {
                 Picker("目标语言", selection: setting(\.target)) {
                     ForEach(TargetLanguage.allCases) { Text($0.title).tag($0) }
                 }.accessibilityIdentifier("settingsTargetLanguagePicker")
+                NavigationLink { LanguagePriorityView(store: store) } label: {
+                    LabeledContent("语言优先级", value: store.settings.smartTarget
+                        ? store.settings.languagePriority.map(\.title).joined(separator: " › ") : "关闭")
+                }.accessibilityIdentifier("languagePriorityLink")
                 Picker("表达风格", selection: setting(\.tone)) {
                     ForEach(TranslationTone.allCases) { Text($0.title).tag($0) }
                 }.disabled(store.settings.translationService == .system)
             } header: { Text("语言与表达").sectionTitle() } footer: {
-                Text("支持中文、英语和日语。自动识别可处理混合语言，原文语言也用于辅助识字。")
+                Text("支持中文、英语和日语。自动识别可处理混合语言，原文语言也用于辅助识字。自动识别到原文已经是目标语言时，按语言优先级改译成另一种语言。")
             }
             Section {
                 Picker("默认模式", selection: setting(\.mode)) {

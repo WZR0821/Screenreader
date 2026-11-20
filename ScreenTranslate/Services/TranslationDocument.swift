@@ -5,6 +5,8 @@ enum TranslationDocument {
     static func html(_ result: TranslationResult, settings: AppSettings = AppSettings(), image: SourceImagePresentation? = nil) -> Data {
         let reader = settings.reader
         let japanese = JapaneseFurigana.isJapanese(target: result.target)
+        // The action button gives no preview: a target changed by 语言优先级 is explained here.
+        let targetNote = result.targetNote.map { "<div class=\"target-note\">\(escaped($0))</div>" } ?? ""
         // Include readings even when initially hidden so the standalone reader can toggle without a network request.
         func rendered(_ text: String) -> String {
             guard japanese else { return escaped(text) }
@@ -79,6 +81,7 @@ enum TranslationDocument {
         .reader { max-width:680px; margin:auto; }
         .reader-header { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px; padding-bottom:16px; margin-bottom:20px; border-bottom:1px solid var(--line); font:500 13px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; color:var(--muted); }
         .reader-header strong { color:var(--ink); font-weight:600; }
+        .target-note { margin:-6px 0 18px; font:400 13px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; color:var(--muted); }
         main { margin:0; }
         h1,p,li { white-space:pre-wrap; overflow-wrap:anywhere; margin:0 0 \(reader.paragraphSpacing)px; }
         h1 { font-size:\(reader.fontSize + 3)px; font-weight:600; }
@@ -107,7 +110,7 @@ enum TranslationDocument {
         label[for="show-furigana"] { display:inline-flex; align-items:center; min-height:44px; box-sizing:border-box; margin:0 0 18px; padding:0 16px; border:1px solid var(--line); border-radius:22px; background:var(--tint); color:var(--muted); font:500 14px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; cursor:pointer; }
         \(appearance)
         \(imageContent.isEmpty ? "" : ImageTranslationDocument.css)
-        </style></head><body><div class="reader"><header class="reader-header"><strong>读屏 · 译文</strong><span>\(escaped(result.sourceLanguages)) → \(escaped(result.target))</span></header>\(rubyControl)\(imageContent)<main>\(content)</main>\(original)</div></body></html>
+        </style></head><body><div class="reader"><header class="reader-header"><strong>读屏 · 译文</strong><span>\(escaped(result.sourceLanguages)) → \(escaped(result.target))</span></header>\(targetNote)\(rubyControl)\(imageContent)<main>\(content)</main>\(original)</div></body></html>
         """
         return Data(document.utf8)
     }

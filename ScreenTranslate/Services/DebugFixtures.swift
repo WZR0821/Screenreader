@@ -30,6 +30,9 @@ enum DebugFixtures {
         settings.configuration.baseURL = "https://fixture.invalid/v1"
         settings.configuration.model = "ui-test-model"
         settings.askModeInShortcuts = ProcessInfo.processInfo.arguments.contains("--fixture-askmode")
+        // The long fixture answers in Chinese whatever it is asked. Its test takes a
+        // screenshot of a Chinese screen, which 语言优先级 would send to Japanese.
+        if ProcessInfo.processInfo.arguments.contains("--fixture-long") { settings.smartTarget = false }
         if ProcessInfo.processInfo.arguments.contains("--fixture-layout") { settings.mode = .professional }
         settings.imageOverlay = ProcessInfo.processInfo.arguments.contains("--fixture-image-overlay")
         if ProcessInfo.processInfo.arguments.contains("--fixture-japanese") {

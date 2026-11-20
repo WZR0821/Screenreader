@@ -43,12 +43,19 @@ struct TranslationPipeline {
         await OCRCache.shared.clear()
     }
 
-    func text(_ text: String, settings: AppSettings, key: String,
+    /// `origin` says where the text came from and lets 语言优先级 pick another
+    /// target for text already in the selected one. nil translates exactly as
+    /// `settings` says: one block of a finished result must stay in that
+    /// result's language.
+    func text(_ text: String, settings selected: AppSettings, key: String,
               source: String? = nil, initialWarning: String? = nil, fromImageText: Bool = false,
               readingBlocks: [ReadingBlock]? = nil, forceRefresh: Bool = false,
+              origin: LanguageGuess.Origin? = nil,
               onPartial: APIClient.PartialHandler? = nil) async throws -> TranslationResult {
         let started = Date()
         let clean = try TextPreparation.validated(text)
+        let resolution = origin.map { selected.resolvingTarget(for: clean, origin: $0) }
+        let settings = resolution?.settings ?? selected
         _ = try TextPreparation.instructions(settings: settings)
         let identity = try TranslationCache.key(text: clean, settings: settings, apiKey: key,
             readingBlocks: readingBlocks, fromImageText: fromImageText)
@@ -73,6 +80,7 @@ struct TranslationPipeline {
         result.mode = settings.mode
         result.blocks = output.blocks
         result.usedCache = cached != nil
+        result.targetNote = resolution?.note
         return result
     }
 
@@ -169,6 +177,7 @@ struct TranslationPipeline {
             fromImageText: settings.cleanScreenText,
             readingBlocks: Self.sendsBlocks(settings) && !recognized.blocks.isEmpty ? recognized.blocks : nil,
             forceRefresh: forceRefresh,
+            origin: .external,
             onPartial: onPartial)
         result.imageMode = .text
         result.uncertainOCR = uncertain

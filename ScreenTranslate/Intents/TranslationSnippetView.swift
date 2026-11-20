@@ -15,6 +15,9 @@ struct TranslationSnippetView: View {
                 let preview = TranslationFormatting.preview(result.translated, limit: typeSize.isAccessibilitySize ? 65 : 120)
                 Text("\(result.sourceLanguages) → \(result.target) · \(result.imageMode == .visual ? "识图预览" : "译文预览")")
                     .font(.caption).foregroundStyle(.secondary)
+                if let note = result.targetNote {
+                    Text(note).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                }
                 if let warning = result.warning {
                     Text(warning).font(.caption).foregroundStyle(.secondary).lineLimit(2)
                 }

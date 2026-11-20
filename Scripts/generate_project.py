@@ -64,7 +64,7 @@ for name, sources, product_type in [
             'SWIFT_STRICT_CONCURRENCY': 'complete',
             # Single source of the version. Test bundles carry it too, so UI tests
             # and the packaging script read it instead of hard-coding it.
-            'MARKETING_VERSION': '1.3.3', 'CURRENT_PROJECT_VERSION': '31',
+            'MARKETING_VERSION': '1.3.4', 'CURRENT_PROJECT_VERSION': '32',
         }
         if name == 'ScreenTranslate':
             settings.update({'INFOPLIST_FILE': 'ScreenTranslate/Info.plist', 'GENERATE_INFOPLIST_FILE': 'NO',

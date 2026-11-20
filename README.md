@@ -7,7 +7,7 @@
 
 | 平台 | 当前版本 | 开发者 | 许可 |
 |---|---|---|---|
-| iOS 18+（iPhone） | 1.3.3（build 31） | Jerry Wong | [MIT](LICENSE) |
+| iOS 18+（iPhone） | 1.3.4（build 32） | Jerry Wong | [MIT](LICENSE) |
 
 ## 主要功能
 
@@ -20,6 +20,14 @@
 | 识图 | 照片、海报和难以识字的图片 | 分别说明可辨认文字的大意与整体画面内容，可发送同图局部细节辅助理解 |
 
 可以事先选择默认模式，也可让操作按钮每次询问。识图需要实际支持图片的 API 模型；系统翻译仅支持 App 内快速模式，操作按钮使用 API。
+
+### 语言优先级
+
+- 原文语言选“自动识别”、内容又已经是所选的目标语言时，按优先顺序改译成另一种语言。默认顺序是 中文 › 日语 › 英语：目标语言是中文时输入中文，译成日语。
+- 顺序在“设置 → 翻译偏好 → 语言优先级”里拖动调整，也可以关掉“自动改译”。所选的目标语言不会被改掉。
+- 翻译页在发送前就显示“按优先级译为 日语”，结果上方写明原因。手动指定了原文语言、用识图模式，或者内容是中日英混排、繁体中文时，都按所选的目标语言翻译。
+- 截图、照片和快捷指令判得更严：整段文字都是目标语言才改译，里面有别的语言的句子就照常翻译。
+- 判断在本机完成，不发请求。规则和例子见 [1.3.4 更新说明](Docs/Release-1.3.4/更新说明.md)。
 
 ### 识字与专业排版
 
@@ -77,7 +85,7 @@ App 内和全文文稿可设置字体、字重、字号、行距、段距与原�
 
 ## 下载与安装
 
-安装包在 [GitHub Releases](https://github.com/WZR0821/Screenreader/releases/latest)。`Screenreader-iOS-v1.3.3-build31-unsigned.ipa` 是 iPhoneOS arm64 未签名 Release，需要自行签名后安装，最低 iOS 18。
+安装包在 [GitHub Releases](https://github.com/WZR0821/Screenreader/releases/latest)。`Screenreader-iOS-v1.3.4-build32-unsigned.ipa` 是 iPhoneOS arm64 未签名 Release，需要自行签名后安装，最低 iOS 18。
 
 ### 开始使用
 
@@ -109,7 +117,7 @@ xcodebuild build -project ScreenTranslate.xcodeproj -scheme ScreenTranslate \
 
 python3 Scripts/package_unsigned_ipa.py \
   work/DeviceBuild/Build/Products/Release-iphoneos/ScreenTranslate.app \
-  work/release-1.3.3/Screenreader-iOS-v1.3.3-build31-unsigned.ipa
+  work/release-1.3.4/Screenreader-iOS-v1.3.4-build32-unsigned.ipa
 ```
 
 在模拟器上跑测试时，测试包要让 Xcode 正常做本地签名（不要加 `CODE_SIGNING_ALLOWED=NO`）；否则 App 读写不了钥匙串，测试数据存不进去，依赖 API Key 的测试会失败。本仓库在 iCloud 同步的 `~/Documents` 里，放在仓库内的编译产物会带上扩展属性，codesign 会报 `resource fork, Finder information, or similar detritus not allowed`。所以测试编译目录要放在 iCloud 之外：
@@ -117,7 +125,7 @@ python3 Scripts/package_unsigned_ipa.py \
 ```sh
 xcodebuild build-for-testing -project ScreenTranslate.xcodeproj -scheme ScreenTranslate \
   -configuration Debug -destination 'generic/platform=iOS Simulator' \
-  -derivedDataPath /Users/Shared/ScreenreaderBuilds/1.3.3-test -jobs 2
+  -derivedDataPath /Users/Shared/ScreenreaderBuilds/1.3.4-test -jobs 2
 ```
 
 各版本的测试范围和结果见 [更新记录的“各版验证记录”](Docs/CHANGELOG.md#各版验证记录)。
@@ -130,7 +138,7 @@ xcodebuild build-for-testing -project ScreenTranslate.xcodeproj -scheme ScreenTr
 |---|---|
 | `ScreenTranslate/` | iOS App：`Core/` 是识字整理、排版、提示词和翻译请求的逻辑，`Services/` 是识字、图片处理、设置与钥匙串，`Views/` 是界面，`Intents/` 是快捷指令动作 |
 | `Tests/` | 核心检查（`ScreenTranslateCoreTests`）、iOS 单元与集成测试（`iOSTests`）、界面测试（`UITests`）和测试素材 |
-| `Scripts/` | 生成 Xcode 工程（`generate_project.py`）和打未签名 IPA（`package_unsigned_ipa.py`） |
+| `Scripts/` | 生成 Xcode 工程（`generate_project.py`）、打未签名 IPA（`package_unsigned_ipa.py`）和生成区分中日文用字的字表（`generate_language_tables.py`） |
 | `Docs/` | 各版本的更新说明、验证记录和使用文档 |
 | `Package.swift` | 让 `swift test` 在本机直接跑核心检查的 Swift 包 |
 
@@ -138,6 +146,7 @@ xcodebuild build-for-testing -project ScreenTranslate.xcodeproj -scheme ScreenTr
 
 ## 版本记录
 
+- **1.3.4（32）**：语言优先级。自动识别出原文已经是目标语言时，按 中文 › 日语 › 英语 的顺序改译成另一种语言；顺序可调，可关闭。[更新说明](Docs/Release-1.3.4/更新说明.md)
 - **1.3.3（31）**：截图翻译默认只出文字，“原图直译”改成默认关闭的开关；快速模式提速；原图直译按原文的行位和颜色排。[更新说明](Docs/Release-1.3.3/更新说明.md)
 - **1.3.2（30）**：“API 设置”换成“AI 大模型”，按供应商保存密钥、地址和模型；翻译和设置两个主界面排满一屏。[更新说明](Docs/Release-1.3.2/更新说明.md)
 - **1.3.1（29）**：设置即选即生效，删除记录前先确认，设置首页改为系统“设置”样式；并入原定为 1.4.0 的长文分段、报错原话、思考强度和流式显示（构建 28）。[更新说明](Docs/Release-1.3.1/更新说明.md)
@@ -157,7 +166,8 @@ xcodebuild build-for-testing -project ScreenTranslate.xcodeproj -scheme ScreenTr
 - 全文窗口使用系统 Quick Look，其关闭工具栏、推荐应用和高度由 iOS 控制。
 - Apple 系统翻译在 App 前台运行，可能需要下载语言包；操作按钮使用已配置 API。
 - 只提供未签名 IPA，安装前要自己签名。
-- 1.3.3 的回归都在模拟器上完成，没有上真机；提速没有用真实密钥计时，1.3.2 新增的供应商也没有用真实密钥连过。
+- 语言优先级靠本机判断原文语言：键盘输入的日语词如果只有中日文共用的汉字（“山田”“学生”），默认顺序下会被当成中文；少于 20 个字母的拉丁字母内容一律当成英语。翻译页在发送前会显示实际译成什么。
+- 1.3.3 和 1.3.4 的回归都在模拟器上完成，没有上真机；1.3.3 的提速没有用真实密钥计时，1.3.2 新增的供应商和 1.3.4 的改译也没有用真实密钥连过。
 
 ## 许可与致谢
 

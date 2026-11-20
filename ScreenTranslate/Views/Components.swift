@@ -174,6 +174,13 @@ struct ResultContent: View {
                 .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("translationResultHeader")
+            if let note = result.targetNote {
+                // Information, not a problem: the same grey as other secondary text.
+                Label(note, systemImage: "arrow.triangle.branch")
+                    .font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("targetNote")
+            }
             if let warning = result.warning {
                 Label(warning, systemImage: "exclamationmark.triangle")
                     .font(.caption).foregroundStyle(.orange)
@@ -290,6 +297,10 @@ private struct TranslationInformationView: View {
             Form {
                 Section {
                     LabeledContent("目标语言", value: result.target)
+                    if let note = result.targetNote {
+                        Text(note).font(.subheadline).foregroundStyle(.secondary)
+                            .accessibilityIdentifier("targetNoteInformation")
+                    }
                     LabeledContent("模式", value: result.mode?.title ?? "翻译")
                     LabeledContent(hasReviews ? "初次翻译引擎" : "引擎", value: result.engine)
                     if result.usedCache == true { Label("复用译文", systemImage: "checkmark.circle") }

@@ -141,7 +141,7 @@ enum IntentTranslationWork {
         let savedMode = await store.settings.mode
         let chosen = mode ?? savedMode
         let (settings, key) = try await store.credentials(for: chosen)
-        let result = try await pipeline.text(text, settings: settings, key: key)
+        let result = try await pipeline.text(text, settings: settings, key: key, origin: .external)
         return try await record(result, store: store)
     }
 

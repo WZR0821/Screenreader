@@ -248,9 +248,15 @@ struct TranslationView: View {
         let layout = typeSize.isAccessibilitySize
             ? AnyLayout(VStackLayout(spacing: 0))
             : AnyLayout(HStackLayout(spacing: 2))
+        // 语言优先级: text already in the target language goes elsewhere. Show
+        // where before the request is sent; the menus keep the saved choice.
+        let resolution = model.targetResolution(store.settings)
+        let switched = resolution.switched
+        let source = switched ? resolution.requested.title : store.settings.source.title
+        let target = resolution.settings.target.title
         return layout {
             Menu {
-                Text("原文语言")
+                Text(switched ? "自动识别到\(source)" : "原文语言")
                 ForEach(SourceLanguage.allCases) { language in
                     Button { sourceLanguage.wrappedValue = language } label: {
                         if language == store.settings.source { Label(language.title, systemImage: "checkmark") }
@@ -258,9 +264,11 @@ struct TranslationView: View {
                     }
                 }
             } label: {
-                languageLabel(store.settings.source.title, caption: "原文语言")
-            }.buttonStyle(.plain).accessibilityLabel("原文语言：\(store.settings.source.title)")
-                .accessibilityValue(store.settings.source.title).accessibilityIdentifier("sourceLanguagePicker")
+                languageLabel(source, caption: switched ? "自动识别到" : "原文语言", highlighted: switched)
+            }.buttonStyle(.plain)
+                // The label keeps the saved choice; the value is what this text gets.
+                .accessibilityLabel("原文语言：\(store.settings.source.title)" + (switched ? "，识别到\(source)" : ""))
+                .accessibilityValue(source).accessibilityIdentifier("sourceLanguagePicker")
             Button {
                 do {
                     try withAnimation(reduceMotion ? nil : .smooth(duration: 0.25)) {
@@ -279,7 +287,7 @@ struct TranslationView: View {
                 .disabled(store.settings.source == .automatic)
                 .sensoryFeedback(.selection, trigger: swapCount)
             Menu {
-                Text("目标语言")
+                Text(switched ? "原文已是\(source)，按语言优先级译为\(target)" : "目标语言")
                 ForEach(TargetLanguage.allCases) { language in
                     Button { targetLanguage.wrappedValue = language } label: {
                         if language == store.settings.target { Label(language.title, systemImage: "checkmark") }
@@ -287,16 +295,20 @@ struct TranslationView: View {
                     }
                 }
             } label: {
-                languageLabel(store.settings.target.title, caption: "译为")
-            }.buttonStyle(.plain).accessibilityLabel("目标语言：\(store.settings.target.title)")
-                .accessibilityValue(store.settings.target.title).accessibilityIdentifier("targetLanguagePicker")
+                languageLabel(target, caption: switched ? "按优先级译为" : "译为", highlighted: switched)
+            }.buttonStyle(.plain)
+                .accessibilityLabel("目标语言：\(store.settings.target.title)" + (switched ? "，这段文字按语言优先级译为\(target)" : ""))
+                .accessibilityValue(target).accessibilityIdentifier("targetLanguagePicker")
         }.padding(.horizontal, 12).padding(.vertical, 10).tint(theme.accent)
             .disabled(model.busy)
     }
 
-    private func languageLabel(_ title: String, caption: String) -> some View {
+    /// `highlighted` marks a language the app worked out, not the saved choice.
+    private func languageLabel(_ title: String, caption: String, highlighted: Bool = false) -> some View {
         VStack(spacing: 4) {
-            Text(caption).font(.caption2).foregroundStyle(.secondary)
+            Text(caption).font(.caption2)
+                .foregroundStyle(highlighted ? AnyShapeStyle(theme.accent) : AnyShapeStyle(.secondary))
+                .contentTransition(.opacity)
             HStack(spacing: 6) {
                 Text(title).font(.body.weight(.semibold)).foregroundStyle(.primary).contentTransition(.opacity)
                     .lineLimit(1).minimumScaleFactor(0.8)

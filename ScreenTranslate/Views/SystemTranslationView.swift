@@ -10,6 +10,8 @@ struct SystemTranslationRequest: Identifiable {
     let recognitionSeconds: TimeInterval?
     var cacheGeneration: Int = 0
     var readingBlocks: [ReadingBlock]? = nil
+    /// Set when 语言优先级 changed the target; shown with the result.
+    var targetNote: String? = nil
     var source: Locale.Language? {
         settings.source == .automatic ? nil : Locale.Language(identifier: settings.source.rawValue)
     }

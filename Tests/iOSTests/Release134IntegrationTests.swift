@@ -94,7 +94,8 @@ final class Release134IntegrationTests: XCTestCase {
         XCTAssertFalse(model.targetResolution(store.settings).switched)
         model.translate(); try await waitForIdle(model)
         XCTAssertEqual(model.result?.target, "中文"); XCTAssertNil(model.result?.targetNote)
-        // 识图 explains a picture in the selected language.
+        // 识图 reads the picture only when it is sent, so the page shows the
+        // selected language; since 1.4.0 the result says if it changed.
         try store.change { $0.source = .automatic; $0.mode = .visual }
         XCTAssertFalse(model.targetResolution(store.settings).switched)
     }

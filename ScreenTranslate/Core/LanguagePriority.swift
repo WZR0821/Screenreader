@@ -16,20 +16,26 @@ enum LanguageGuess {
     /// go before anything is sent, and kanji both languages share follow the
     /// priority order.
     ///
-    /// `external`: read from a picture or handed over by a shortcut. Nothing is
-    /// shown beforehand, and a screenshot mixes the phone's own labels with the
-    /// one message the reader wants translated. Only text that is in a single
-    /// language throughout counts; a sentence in another language anywhere
-    /// means the translation runs as selected.
+    /// `external`: read from a picture or handed over by a shortcut, with
+    /// nothing shown beforehand. A screenshot mixes what the reader wants with
+    /// the phone's own labels, people's names and links, so links and @handles
+    /// are left out, and short lines (已读, 翻译帖子, a name) only count when
+    /// there is nothing longer. The language most of the rest is in decides,
+    /// except the reader's own language, the first in the priority: leaving
+    /// it would keep a message in the next language untranslated, so it only
+    /// counts when every line is in it.
     enum Origin: Sendable, Equatable { case keyboard, external }
 
     /// Only the start of a long text is counted; it decides the language just as well.
     private static let limit = 4_000
+    /// A line that weighs no more than four kanji or sixteen letters is a
+    /// label, a name or a time rather than what the screen is about.
+    private static let shortLine = 16
 
     static func dominant(_ text: String, origin: Origin,
                          priority: [TargetLanguage] = AppSettings.defaultLanguagePriority) -> TargetLanguage? {
         let reading = read(text, origin: origin, priority: priority)
-        if reading.language == .english, isAnotherLatinLanguage(text, letters: reading.latin) { return nil }
+        if reading.language == .english, isAnotherLatinLanguage(reading.text, letters: reading.latin) { return nil }
         return reading.language
     }
 
@@ -40,60 +46,47 @@ enum LanguageGuess {
                           priority: [TargetLanguage] = AppSettings.defaultLanguagePriority) -> Bool {
         let reading = read(text, origin: origin, priority: priority)
         guard reading.language == language else { return false }
-        return language != .english || !isAnotherLatinLanguage(text, letters: reading.latin)
+        return language != .english || !isAnotherLatinLanguage(reading.text, letters: reading.latin)
     }
 
+    /// The language, the Latin letters it was decided on, and the text it was read from.
     private static func read(_ text: String, origin: Origin,
-                             priority: [TargetLanguage]) -> (language: TargetLanguage?, latin: Int) {
-        let strict = origin == .external
-        var kana = 0, han = 0, latin = 0, other = 0
-        var counts = [Int](repeating: 0, count: Script.count)
-        // Latin words in a row with no kanji, kana or line break between them.
-        // Four or more are a phrase to translate, not a product name.
-        var letters = 0, words = 0, phrase = 0
-        func endWord() {
-            if letters >= 2 { words += 1; phrase = max(phrase, words) }
-            letters = 0
+                             priority: [TargetLanguage]) -> (language: TargetLanguage?, latin: Int, text: String) {
+        let order = AppSettings.normalizedPriority(priority)
+        guard origin == .external else {
+            let all = Tally.lines(of: text).all
+            let shared = order.first { $0 == .simplifiedChinese || $0 == .japanese }
+            return (language(of: all, strict: false, sharedKanji: shared), all.latin, text)
         }
-        for scalar in text.unicodeScalars.prefix(limit) {
-            let value = scalar.value
-            switch value {
-            // Kana with their long-vowel and repeat marks, full and half width.
-            case 0x3041...0x3096, 0x309D...0x309F, 0x30A1...0x30FA, 0x30FC...0x30FF, 0xFF66...0xFF9F:
-                kana += 1; endWord(); words = 0
-            // 々 and 〇 are written among kanji in both languages.
-            case 0x3005...0x3007, 0x3400...0x4DBF, 0x4E00...0x9FFF, 0xF900...0xFAFF, 0x20000...0x323AF:
-                han += 1; endWord(); words = 0
-                if let script = table[value] { counts[script.rawValue] += 1 }
-            case 0x41...0x5A, 0x61...0x7A, 0xFF21...0xFF3A, 0xFF41...0xFF5A: latin += 1; letters += 1
-            case 0xC0...0x24F where value != 0xD7 && value != 0xF7: latin += 1; letters += 1
-            case 0x0A, 0x0D, 0x2028, 0x2029: endWord(); words = 0
-            default:
-                endWord()
-                if value > 0x7F, scalar.properties.isAlphabetic { other += 1 }
-            }
-        }
-        endWord()
-        // A kanji or kana carries about as much as a short word.
-        let cjk = (kana + han) * 4
-        let total = cjk + latin + other * 2
+        let clean = withoutAddresses(text)
+        let lines = Tally.lines(of: clean)
+        let main = lines.long.weight > 0 ? lines.long : lines.all
+        guard let found = language(of: main, strict: false, sharedKanji: nil),
+              found != order.first || language(of: lines.all, strict: true, sharedKanji: nil) == found
+        else { return (nil, main.latin, clean) }
+        return (found, main.latin, clean)
+    }
+
+    /// The language of what was counted, or nil. `strict` asks for all of it
+    /// to be in that one language.
+    private static func language(of tally: Tally, strict: Bool, sharedKanji: TargetLanguage?) -> TargetLanguage? {
+        let total = tally.weight
         // A line of Korean or Russian in a screenshot is a message to translate.
-        guard total > 0, cjk + latin > 0,
-              strict ? other <= 2 : Double(other * 2) / Double(total) <= 0.3 else { return (nil, latin) }
-        let share = Double(cjk) / Double(cjk + latin)
+        guard total > 0, tally.cjk + tally.latin > 0,
+              strict ? tally.other <= 2 : Double(tally.other * 2) / Double(total) <= 0.3 else { return nil }
+        let share = Double(tally.cjk) / Double(tally.cjk + tally.latin)
         // Typed Chinese may carry a few English terms ("这个 bug 怎么修"), but
         // "帮我翻译 hello world" asks for the English to be translated.
         if share >= (strict ? 0.9 : 0.7) {
-            if strict, phrase >= 4 { return (nil, latin) }
-            return (chineseOrJapanese(kana: kana, counts: counts, origin: origin, priority: priority), latin)
+            if strict, tally.phrase >= 4 { return nil }
+            return chineseOrJapanese(tally, strict: strict, sharedKanji: sharedKanji)
         }
-        return (share <= (strict ? 0.05 : 0.15) && latin >= 2 ? .english : nil, latin)
+        return share <= (strict ? 0.05 : 0.15) && tally.latin >= 2 ? .english : nil
     }
 
-    private static func chineseOrJapanese(kana: Int, counts: [Int], origin: Origin,
-                                          priority: [TargetLanguage]) -> TargetLanguage? {
-        func count(_ script: Script) -> Int { counts[script.rawValue] }
-        let japanese = kana + 2 * count(.japaneseOnly)
+    private static func chineseOrJapanese(_ tally: Tally, strict: Bool, sharedKanji: TargetLanguage?) -> TargetLanguage? {
+        func count(_ script: Script) -> Int { tally.counts[script.rawValue] }
+        let japanese = tally.kana + 2 * count(.japaneseOnly)
         let chinese = 2 * (count(.chineseSimplified) + count(.chineseTraditional) + count(.chineseCommon))
         let simplified = count(.chineseSimplified) + count(.sharedSimplified)
         let traditional = count(.chineseTraditional) + count(.sharedTraditional)
@@ -102,10 +95,8 @@ enum LanguageGuess {
             // Chinese does not have (東, 語) rule it out; together with forms
             // traditional Chinese does not have (国, 学) only Japanese is left.
             if traditional > 0 { return simplified > 0 ? .japanese : nil }
-            guard origin == .keyboard else { return nil }
-            return priority.first { $0 == .simplifiedChinese || $0 == .japanese }
+            return sharedKanji
         }
-        let strict = origin == .external
         // Both languages in one text: leave the choice to the user.
         guard min(japanese, chinese) * (strict ? 10 : 2) < max(japanese, chinese) else { return nil }
         if japanese > chinese {
@@ -113,9 +104,84 @@ enum LanguageGuess {
             return strict && count(.chineseSimplified) > 1 ? nil : .japanese
         }
         // One の is decoration. More kana is a Japanese line in a Chinese screen.
-        if strict, kana > 1 { return nil }
+        if strict, tally.kana > 1 { return nil }
         // Traditional Chinese is not the 中文 this app translates into.
         return traditional > simplified ? nil : .simplifiedChinese
+    }
+
+    /// What a stretch of text holds.
+    private struct Tally {
+        var kana = 0, han = 0, latin = 0, other = 0
+        var counts = [Int](repeating: 0, count: Script.count)
+        /// The most Latin words in a row with no kanji, kana or line break
+        /// between them. Four or more are a phrase to translate, not a product name.
+        var phrase = 0
+        /// A kanji or kana carries about as much as a short word.
+        var cjk: Int { (kana + han) * 4 }
+        var weight: Int { cjk + latin + other * 2 }
+
+        mutating func add(_ line: Tally) {
+            kana += line.kana; han += line.han; latin += line.latin; other += line.other
+            phrase = max(phrase, line.phrase)
+            for index in counts.indices { counts[index] += line.counts[index] }
+        }
+
+        /// Counts the start of `text`: all of it, and only the lines longer than `shortLine`.
+        static func lines(of text: String) -> (all: Tally, long: Tally) {
+            var all = Tally(), long = Tally(), line = Tally()
+            var letters = 0, words = 0
+            func endWord() {
+                if letters >= 2 { words += 1; line.phrase = max(line.phrase, words) }
+                letters = 0
+            }
+            func endLine() {
+                endWord(); words = 0
+                all.add(line)
+                if line.weight > LanguageGuess.shortLine { long.add(line) }
+                line = Tally()
+            }
+            for scalar in text.unicodeScalars.prefix(LanguageGuess.limit) {
+                let value = scalar.value
+                switch value {
+                // Kana with their long-vowel and repeat marks, full and half width.
+                case 0x3041...0x3096, 0x309D...0x309F, 0x30A1...0x30FA, 0x30FC...0x30FF, 0xFF66...0xFF9F:
+                    line.kana += 1; endWord(); words = 0
+                // 々 and 〇 are written among kanji in both languages.
+                case 0x3005...0x3007, 0x3400...0x4DBF, 0x4E00...0x9FFF, 0xF900...0xFAFF, 0x20000...0x323AF:
+                    line.han += 1; endWord(); words = 0
+                    if let script = LanguageGuess.table[value] { line.counts[script.rawValue] += 1 }
+                case 0x41...0x5A, 0x61...0x7A, 0xFF21...0xFF3A, 0xFF41...0xFF5A: line.latin += 1; letters += 1
+                case 0xC0...0x24F where value != 0xD7 && value != 0xF7: line.latin += 1; letters += 1
+                case 0x0A, 0x0D, 0x2028, 0x2029: endLine()
+                default:
+                    endWord()
+                    if value > 0x7F, scalar.properties.isAlphabetic { line.other += 1 }
+                }
+            }
+            endLine()
+            return (all, long)
+        }
+    }
+
+    /// Links, e-mail addresses, @handles and Latin #tags say nothing about the
+    /// language around them, and a domain or a handle reads like English.
+    private static let addresses: NSRegularExpression? = {
+        let url = "[A-Za-z0-9\\-._~:/?#\\[\\]@!$&'()*+,;=%]"
+        let domains = "com|net|org|jp|cn|io|co|me|info|edu|gov|ac|tv|app|dev|ly|gl|be|uk|tw|hk|kr|ai|us|de|fr|asia|xyz|site|top|news"
+        let pattern = [
+            "(?:https?://|www\\.)\(url)+",
+            "(?<![A-Za-z0-9._%+\\-])[A-Za-z0-9._%+\\-]++@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}",
+            "(?<![A-Za-z0-9.\\-@])(?:[A-Za-z0-9\\-]+\\.)+(?:\(domains))(?![A-Za-z0-9\\-])(?:/\(url)*)?",
+            "[@＠][A-Za-z0-9_]{2,}",
+            "[#＃][A-Za-z0-9_]+",
+        ].joined(separator: "|")
+        return try? NSRegularExpression(pattern: pattern)
+    }()
+
+    private static func withoutAddresses(_ text: String) -> String {
+        let start = String(text.unicodeScalars.prefix(limit))
+        guard let addresses else { return start }
+        return addresses.stringByReplacingMatches(in: start, range: NSRange(start.startIndex..., in: start), withTemplate: " ")
     }
 
     /// French, Spanish or German also use Latin letters. Treating them as

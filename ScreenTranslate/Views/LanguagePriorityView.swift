@@ -43,7 +43,8 @@ struct LanguagePriorityView: View {
                             .accessibilityIdentifier("languagePriorityEffect-\(language.languageCode)")
                     }
                 } header: { Text("当前效果").sectionTitle() } footer: {
-                    Text("手动指定了原文语言、用识图模式，或者内容是中日英混排、繁体中文时，仍按所选目标语言翻译。截图和照片要整张都是目标语言才改译，里面有别的语言的句子就照常翻译。")
+                    Text("截图、照片、识图和操作按钮按画面的主要内容判断，界面上的短标签、人名和链接不算；主要内容是\(order[0].title)时，要整张都是\(order[0].title)才改译，以免漏译夹在里面的外语。手动指定了原文语言、几种语言分量相当或是繁体中文时，仍按所选目标语言翻译。")
+                        .accessibilityIdentifier("languagePriorityScreenNote")
                 }
             }
         }

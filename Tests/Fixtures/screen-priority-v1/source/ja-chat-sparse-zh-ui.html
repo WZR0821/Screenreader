@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-Hans"><head><meta charset="utf-8"><link rel="stylesheet" href="phone.css">
+<style>
+body { background: #ededed; }
+.status, .bar { background: #ededed; }
+.time { text-align: center; color: #999; font-size: 12px; margin: 14px 0 10px; }
+.row { display: flex; margin: 0 12px 14px; align-items: flex-start; }
+.row.me { flex-direction: row-reverse; }
+.avatar { width: 40px; height: 40px; border-radius: 5px; flex: none; }
+.bubble { max-width: 262px; margin: 0 10px; padding: 9px 12px; border-radius: 5px; background: #fff;
+  font-size: 16px; line-height: 23px; }
+.me .bubble { background: #95ec69; }
+.read { text-align: right; color: #999; font-size: 12px; margin: -8px 64px 10px 0; }
+.input { position: absolute; bottom: 0; left: 0; right: 0; height: 92px; background: #f7f7f7; border-top: 0.5px solid #ddd;
+  display: flex; align-items: flex-start; padding: 10px 10px 0; gap: 9px; }
+.input .round { width: 30px; height: 30px; border-radius: 15px; border: 1.6px solid #333; flex: none; margin-top: 4px; }
+.input .field { flex: 1; height: 38px; background: #fff; border-radius: 5px; color: #aaa; font-size: 15px;
+  display: flex; align-items: center; justify-content: center; }
+</style></head><body>
+<div class="status"><span>09:14</span><span class="right">5G <span class="battery">62</span></span></div>
+<div class="bar"><span class="back">‹</span>佐藤 健<span class="side">···</span></div>
+<div class="time">今天 上午 9:12</div>
+<div class="row"><div class="avatar" style="background:#d9a"></div><div class="bubble">明日よろしくね！</div></div>
+<div class="row me"><div class="avatar" style="background:#8ac"></div><div class="bubble">了解です！</div></div>
+<div class="read">已读</div>
+<div class="input"><span class="round"></span><span class="field">按住 说话</span><span class="round"></span><span class="round"></span></div>
+<div class="home"></div>
+</body></html>

@@ -340,7 +340,8 @@ final class TranslationViewModel: ObservableObject {
 
     /// What the main button would translate the current text into. The page
     /// shows it before the request is sent, so a changed target is expected.
-    /// 识图 explains a picture and always answers in the selected language.
+    /// 识图 reads the picture only once it is sent: the page shows the saved
+    /// target, and the result says if the text in the picture changed it.
     func targetResolution(_ settings: AppSettings) -> TargetResolution {
         guard settings.mode != .visual else { return TargetResolution(settings: settings, requested: settings.target) }
         return settings.resolvingTarget(for: text, origin: imageData == nil ? .keyboard : .external)

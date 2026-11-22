@@ -22,6 +22,7 @@ def arr(items):
 resources = ['ScreenTranslate/Assets.xcassets', 'ScreenTranslate/PrivacyInfo.xcprivacy', 'ScreenTranslate/Resources/屏译全文.shortcut', 'ScreenTranslate/Resources/读屏全文.shortcut', 'ScreenTranslate/Resources/en.lproj', 'ScreenTranslate/Resources/zh-Hans.lproj']
 test_resources = ['Tests/Fixtures/menu-screenshot.jpg']
 test_resources += sorted(str(p.relative_to(root)) for p in (root / 'Tests/Fixtures/generated-ja-en-v1').glob('*.png'))
+test_resources += sorted(str(p.relative_to(root)) for p in (root / 'Tests/Fixtures/screen-priority-v1').glob('*.png'))
 for source in app_sources + unit_sources + ui_sources + resources + test_resources:
     filetype = 'sourcecode.swift' if source.endswith('.swift') else ('folder.assetcatalog' if source.endswith('.xcassets') else ('text.xml' if source.endswith('.xcprivacy') else ('folder' if source.endswith('.lproj') else 'file')))
     obj('file:' + source, f'isa = PBXFileReference; lastKnownFileType = {filetype}; path = {q(source)}; sourceTree = SOURCE_ROOT;')
@@ -64,7 +65,7 @@ for name, sources, product_type in [
             'SWIFT_STRICT_CONCURRENCY': 'complete',
             # Single source of the version. Test bundles carry it too, so UI tests
             # and the packaging script read it instead of hard-coding it.
-            'MARKETING_VERSION': '1.3.4', 'CURRENT_PROJECT_VERSION': '32',
+            'MARKETING_VERSION': '1.4.0', 'CURRENT_PROJECT_VERSION': '33',
         }
         if name == 'ScreenTranslate':
             settings.update({'INFOPLIST_FILE': 'ScreenTranslate/Info.plist', 'GENERATE_INFOPLIST_FILE': 'NO',

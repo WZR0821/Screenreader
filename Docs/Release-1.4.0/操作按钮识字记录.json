@@ -1,0 +1,127 @@
+{
+  "about": "1.4.0（33）第二轮回归（unit-2）里操作按钮测试的 12 条记录。iPhone 16 Pro（iOS 18.2）模拟器用 Apple Vision 识别 Tests/Fixtures/screen-priority-v1 里的截图，再走“读屏全文”快捷指令所用的同一段代码（IntentTranslationWork.image）。翻译服务是模拟的，请求什么语言就答什么语言。selected 是设置里选的目标语言，target 是实际译成的语言，note 是结果上写的改译说明。seconds 是整次操作的耗时，含识字；同一项测试里再次识别同一张截图时用的是识字缓存，所以有一条是 0 秒。",
+  "records": [
+    {
+      "test": "Release140ScreenIntegrationTests/testTheActionButtonTranslatesJapaneseScreensIntoChinese()",
+      "case": "ja-timeline-zh-ui",
+      "mode": "quick",
+      "selected": "日语",
+      "target": "中文",
+      "note": "原文是日语，已按语言优先级改译为中文。",
+      "seconds": 5.5,
+      "recognizedText": "为你推荐\n\nさくら日和 @sakura_biyori・3小今日は久しぶりに鎌倉まで足を延ばしました。紅葉はまだ少し早かったけど、海沿いの道を歩くだけで気分がすっきりします。＃鎌倉＃週末散歩\n\n12\n\n48\n\n1,203\n\n3.1万\n\n東京グルメ速報 @tokyo_gourmet・5小日【新店情報】渋谷駅から徒歩3分の場所に、行列のできるラーメン店が2号店をオープン。平日は11時から23時まで営業、土日は売り切れ次第終了とのことです。詳しくはこちらexample.jp/ramen/2nd\n\n35\n\n210\n\n3,482\n\n12万\n\nC\n\nKenji Tanaka @kenji_dev・8小町iPhoneのショートカットでスクリーンショットを翻訳できるのが便利すぎる。Apple Intelligenceが日本語にもっと対応したら、さらに使いやすくなりそう。\n\n翻洋帖子\n\n4\n\n17\n\n256\n\n9,870\n\nゆうき ＠yuki0412・11小日明日の試験、緊張して眠れない。とりあえず早めに寝ます。おやすみなさい。\n\n2\n\n5\n\n88\n\n1,540"
+    },
+    {
+      "test": "Release140ScreenIntegrationTests/testTheActionButtonTranslatesJapaneseScreensIntoChinese()",
+      "case": "ja-chat-zh-ui",
+      "mode": "quick",
+      "selected": "日语",
+      "target": "中文",
+      "note": "原文是日语，已按语言优先级改译为中文。",
+      "seconds": 5.0,
+      "recognizedText": "山田 由美\n\n昨天下午3:20\n\nお疲れさまです！明日の打ち合\n\nわせ、10時からで大丈夫ですか？\n\nはい、大丈夫です。資料は今夜。中に送りますね。\n\nありがとうございます。会議室は3階の第2会議室を予約しました。\n\n了解です！\n\n已读\n\n下午 6:02\n\nあと、駅前のカフェで少し早めに集まりませんか？\n\n按住 说话"
+    },
+    {
+      "test": "Release140ScreenIntegrationTests/testTheActionButtonTranslatesJapaneseScreensIntoChinese()",
+      "case": "ja-chat-sparse-zh-ui",
+      "mode": "quick",
+      "selected": "日语",
+      "target": "中文",
+      "note": "原文是日语，已按语言优先级改译为中文。",
+      "seconds": 4.3,
+      "recognizedText": "佐藤健\n\n今天上午9:12\n\n明日よろしくね！\n\n了解です！\n\n已读\n\n按住 说话\n\n〇〇"
+    },
+    {
+      "test": "Release140ScreenIntegrationTests/testTheActionButtonTranslatesJapaneseScreensIntoChinese()",
+      "case": "ja-timeline-zh-ui",
+      "mode": "professional",
+      "selected": "日语",
+      "target": "中文",
+      "note": "原文是日语，已按语言优先级改译为中文。",
+      "seconds": 17.4,
+      "recognizedText": "为你推荐\n\nさくら日和 @sakura_biyori・3小町今日は久しぶりに鎌倉まで足を延ばしました。紅葉はまだ少し早かったけど、海沿いの道を歩くだけで気分がすっきりします。＃鎌倉＃週末散歩\n\n12\n\n48\n\n1,203\n\n3.1万\n\n東京グルメ速報 @tokyo_gourmet・5小町【新店情報】渋谷駅から徒歩3分の場所に、行列のできるラーメン店が2号店をオープン。平日は11時から23時まで営業、土日は売り切れ次第終了とのことです。詳しくはこちらexample.jp/ramen/2nd\n\n35\n\n210\n\n3,482\n\n12万\n\nC\n\nKenji Tanaka @kenji_dev・8小町iPhoneのショートカットでスクリーンショットを翻訳できるのが便利すぎる。Apple Intelligenceが日本語にもっと対応したら、さらに使いやすくなりそう。\n\n翻洋帖子\n\n4\n\n17\n\n256\n\n9,870\n\nゆうき ＠yuki_0412・11小町明日の試験、緊張して眠れない。とりあえず早めに寝ます。おやすみなさい。\n\n2\n\n5\n\n88\n\n1,540"
+    },
+    {
+      "test": "Release140ScreenIntegrationTests/testTheReadersOwnLanguageStillNeedsTheWholeScreen()",
+      "case": "zh-article",
+      "mode": "quick",
+      "selected": "中文",
+      "target": "日语",
+      "note": "原文是中文，已按语言优先级改译为日语。",
+      "seconds": 4.7,
+      "recognizedText": "冬季出行提示：这几条建议请收好\n\n城市生活指南11月22日 08:30\n\n进入十一月下旬，各地气温明显下降，早晚温差较大。出门前请关注天气预报，适当增添衣物，特别是老人和孩子要注意保暖。\n\n乘坐地铁和公交时，请提前查询首末班车时间。部分线路在节假日会调整运营安排，建议使用官方应用查看实时信息。如遇雨雪天气，道路湿滑，驾车时请减速慢行，与前车保持足够的安全距离。\n\n阅读原文 city.example.cn/winter"
+    },
+    {
+      "test": "Release140ScreenIntegrationTests/testTheReadersOwnLanguageStillNeedsTheWholeScreen()",
+      "case": "zh-chat-with-ja",
+      "mode": "quick",
+      "selected": "中文",
+      "target": "中文",
+      "note": "",
+      "seconds": 5.4,
+      "recognizedText": "研究会交流群（12）\n\n下午 2:41\n\n王老师\n\n明天的读书会改到下午三点，地点还是图书馆二楼。\n\n收到，我会提前把报告发到群里。\n\n田中\n\nすみません、明日は授業があるので、少し遅れて参加します。資料は先に読んでおきます。\n\n王老师\n\n没问题，大家到齐以后再开始讨论。\n\n好的，谢谢老师！\n\n按住 说话\n\n〇〇"
+    },
+    {
+      "test": "Release140ScreenIntegrationTests/testTheReadersOwnLanguageStillNeedsTheWholeScreen()",
+      "case": "zh-chat-with-ja",
+      "mode": "quick",
+      "selected": "日语",
+      "target": "日语",
+      "note": "",
+      "seconds": 0.0,
+      "recognizedText": "研究会交流群（12）\n\n下午 2:41\n\n王老师\n\n明天的读书会改到下午三点，地点还是图书馆二楼。\n\n收到，我会提前把报告发到群里。\n\n田中\n\nすみません、明日は授業があるので、少し遅れて参加します。資料は先に読んでおきます。\n\n王老师\n\n没问题，大家到齐以后再开始讨论。\n\n好的，谢谢老师！\n\n按住 说话\n\n〇〇"
+    },
+    {
+      "test": "Release140ScreenIntegrationTests/testAnEnglishTimelineOnAChinesePhoneGoesToChinese()",
+      "case": "en-timeline-zh-ui",
+      "mode": "quick",
+      "selected": "英语",
+      "target": "中文",
+      "note": "原文是英语，已按语言优先级改译为中文。",
+      "seconds": 7.9,
+      "recognizedText": "为你推荐\n\nNora Hughes @norahughes・2小\n\nFinally finished the long trail along the coast this weekend. My legs hate me, but the view from the last hill was worth every step.\n\n翻译帖子\n\n9\n\n31\n\n402\n\n2.4万\n\nTransit Weekly @transitweekly・4小The night bus pilot is being extended until March. Riders can check the new timetable on the city website before planning late trips.翻洋呫子\n\n9\n\n31\n\n402\n\n2.4万\n\nSam Ortiz @samortiz_dev • 7/MJ Small reminder that a good error message is part of the feature, not an afterthought. Tell people what happened and what to do next.\n\n9\n\n31\n\n402\n\n2.4万"
+    },
+    {
+      "test": "Release140ScreenIntegrationTests/testVisualModeExplainsInTheResolvedLanguage()",
+      "case": "ja-chat-zh-ui",
+      "mode": "visual",
+      "selected": "日语",
+      "target": "中文",
+      "note": "原文是日语，已按语言优先级改译为中文。",
+      "seconds": 5.9,
+      "recognizedText": "山田 由美\n\n昨天下午 3:20\n\nお疲れさまです！明日の打ち合\n\nわせ、10時からで大丈夫ですか？\n\nはい、大丈夫です。資料は今夜中に送りますね。\n\nありがとうございます。会議室は3階の第2会議室を予約しました。\n\n了解です！\n\n已读\n\n下午 6:02\n\nあと、駅前のカフェで少し早めに集まりませんか？\n\n按住 说话"
+    },
+    {
+      "test": "Release140ScreenIntegrationTests/testVisualModeExplainsInTheResolvedLanguage()",
+      "case": "zh-chat-with-ja",
+      "mode": "visual",
+      "selected": "中文",
+      "target": "中文",
+      "note": "",
+      "seconds": 154.6,
+      "recognizedText": "研究会交流群（12）\n\n下午 2:41\n\n王老姉\n\n明天的读书会改到下午三点，地点还是图书馆二楼。\n\n收到，我会提前把报告发到群里。\n\n田中\n\nすみません、明日は授業があるので、少し遅れて参加します。資料は先に読んでおきます。\n\n王老师\n\n没问题，大家到齐以后再开始讨论。\n\n好的，谢谢老师！\n\n按住 说话\n\n〇〇"
+    },
+    {
+      "test": "Release140ScreenIntegrationTests/testAChosenSourceLanguageOrTheSwitchTurnedOffKeepsTheTarget()",
+      "case": "ja-chat-zh-ui",
+      "mode": "quick",
+      "condition": "自动改译关闭",
+      "selected": "日语",
+      "target": "日语",
+      "note": "",
+      "seconds": 6.1,
+      "recognizedText": "山田 由美\n\n昨天下午3:20\n\nお疲れさまです！明日の打ち合\n\nわせ、10時からで大丈夫ですか？\n\nはい、大丈夫です。資料は今夜。中に送りますね。\n\nありがとうございます。会議室は3階の第2会議室を予約しました。\n\n了解です！\n\n已读\n\n下午 6:02\n\nあと、駅前のカフェで少し早めに集まりませんか？\n\n按住 说话"
+    },
+    {
+      "test": "Release140ScreenIntegrationTests/testAChosenSourceLanguageOrTheSwitchTurnedOffKeepsTheTarget()",
+      "case": "ja-chat-zh-ui",
+      "mode": "visual",
+      "condition": "原文语言手动选了日语",
+      "selected": "日语",
+      "target": "日语",
+      "note": "",
+      "seconds": 4.6,
+      "recognizedText": "山田 由美\n\n昨天下午 3:20\n\nお疲れさまです！明日の打ち合\n\nわせ、10時からで大丈夫ですか？\n\nはい、大丈夫です。資料は今夜中に送りますね。\n\nありがとうございます。会議室は3階の第2会議室を予約しました。\n\n了解です！\n\n已速\n\n下午 6:02\n\nあと、駅前のカフェで少し早めに集まりませんか？\n\n按住流活"
+    }
+  ]
+}

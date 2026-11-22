@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-Hans"><head><meta charset="utf-8"><link rel="stylesheet" href="phone.css">
+<style>
+body { background: #ededed; }
+.status, .bar { background: #ededed; }
+.time { text-align: center; color: #999; font-size: 12px; margin: 14px 0 10px; }
+.row { display: flex; margin: 0 12px 14px; align-items: flex-start; }
+.row.me { flex-direction: row-reverse; }
+.avatar { width: 40px; height: 40px; border-radius: 5px; flex: none; }
+.who { font-size: 12px; color: #888; margin: 0 0 3px 10px; }
+.bubble { max-width: 262px; margin: 0 10px; padding: 9px 12px; border-radius: 5px; background: #fff;
+  font-size: 16px; line-height: 23px; }
+.me .bubble { background: #95ec69; }
+.input { position: absolute; bottom: 0; left: 0; right: 0; height: 92px; background: #f7f7f7; border-top: 0.5px solid #ddd;
+  display: flex; align-items: flex-start; padding: 10px 10px 0; gap: 9px; }
+.input .round { width: 30px; height: 30px; border-radius: 15px; border: 1.6px solid #333; flex: none; margin-top: 4px; }
+.input .field { flex: 1; height: 38px; background: #fff; border-radius: 5px; color: #aaa; font-size: 15px;
+  display: flex; align-items: center; justify-content: center; }
+</style></head><body>
+<div class="status"><span>18:21</span><span class="right">5G <span class="battery">87</span></span></div>
+<div class="bar"><span class="back">‹</span>研究会交流群（12）<span class="side">···</span></div>
+<div class="time">下午 2:41</div>
+<div class="row"><div class="avatar" style="background:#7b9"></div><div><div class="who">王老师</div><div class="bubble">明天的读书会改到下午三点，地点还是图书馆二楼。</div></div></div>
+<div class="row me"><div class="avatar" style="background:#8ac"></div><div class="bubble">收到，我会提前把报告发到群里。</div></div>
+<div class="row"><div class="avatar" style="background:#c97"></div><div><div class="who">田中</div><div class="bubble">すみません、明日は授業があるので、少し遅れて参加します。資料は先に読んでおきます。</div></div></div>
+<div class="row"><div class="avatar" style="background:#7b9"></div><div><div class="who">王老师</div><div class="bubble">没问题，大家到齐以后再开始讨论。</div></div></div>
+<div class="row me"><div class="avatar" style="background:#8ac"></div><div class="bubble">好的，谢谢老师！</div></div>
+<div class="input"><span class="round"></span><span class="field">按住 说话</span><span class="round"></span><span class="round"></span></div>
+<div class="home"></div>
+</body></html>

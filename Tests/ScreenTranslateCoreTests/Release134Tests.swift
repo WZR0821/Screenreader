@@ -34,7 +34,8 @@ final class Release134Tests: XCTestCase {
     }
 
     func testAScreenshotCountsOnlyWhenItIsInOneLanguageThroughout() {
-        // A settings screen: Chinese, with a product name.
+        // Chinese is first in the default priority, so a Chinese screen
+        // still has to be Chinese throughout. A settings screen, with a product name.
         let settings = "设置\n无线局域网\n蓝牙\n蜂窝网络\n个人热点\n通知\n声音与触感\n专注模式\n屏幕使用时间\nApp Store\n通用"
         XCTAssertEqual(guess(settings, .external), .simplifiedChinese)
         // The Shortcuts editor the action button test takes a screenshot of.
@@ -59,12 +60,14 @@ final class Release134Tests: XCTestCase {
         XCTAssertNil(guess("apple 苹果\nbanana 香蕉\norange 橙子\ngrape 葡萄", .external))
         XCTAssertNil(guess("我昨天在京东买了一台 iPhone 16 Pro Max，感觉还不错", .external))
 
-        // Japanese screens, the same way round.
+        // Japanese screens. Since 1.4.0 only the reader's own language, first
+        // in the priority, needs the whole screen; for any other the language
+        // most of it is in decides (Release140ScreenTests).
         let japanese = String(repeating: "本日は定休日です。またのご来店をお待ちしております。\n", count: 8)
         XCTAssertEqual(guess(japanese, .external), .japanese)
-        XCTAssertNil(guess(japanese + "这个东西多少钱？我们明天再说吧。", .external))
-        XCTAssertNil(guess("iPhoneのバッテリーを交換する", .external))
-        XCTAssertNil(guess(japanese + "Please keep this ticket until you leave.", .external))
+        XCTAssertEqual(guess(japanese + "这个东西多少钱？我们明天再说吧。", .external), .japanese)
+        XCTAssertEqual(guess("iPhoneのバッテリーを交換する", .external), .japanese)
+        XCTAssertEqual(guess(japanese + "Please keep this ticket until you leave.", .external), .japanese)
 
         // English with a word or two of anything else.
         let english = String(repeating: "Please keep this ticket until you leave the station. ", count: 4)

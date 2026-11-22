@@ -1,0 +1,17 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { width: 402px; height: 874px; overflow: hidden; position: relative; background: #fff; color: #0f1419;
+  font-family: "PingFang SC", -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+.status { height: 54px; display: flex; justify-content: space-between; align-items: center; padding: 6px 34px 0;
+  font: 600 17px -apple-system, sans-serif; }
+.status .right { display: flex; gap: 6px; align-items: center; font-size: 15px; }
+.battery { border: 1.5px solid #0f1419; border-radius: 4px; padding: 0 3px; font-size: 12px; line-height: 13px; }
+.bar { height: 44px; display: flex; align-items: center; justify-content: center; position: relative;
+  font-weight: 600; font-size: 17px; border-bottom: 0.5px solid #ddd; }
+.bar .back { position: absolute; left: 12px; font-size: 26px; font-weight: 300; color: #333; }
+.bar .side { position: absolute; right: 16px; font-size: 22px; color: #333; }
+.home { position: absolute; bottom: 8px; left: 134px; width: 134px; height: 5px; border-radius: 3px; background: #111; }
+.tabbar { position: absolute; bottom: 0; left: 0; right: 0; height: 84px; border-top: 0.5px solid #ddd;
+  display: flex; justify-content: space-around; padding-top: 9px; background: #fafafa; }
+.tabbar .item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; color: #777; }
+.tabbar .glyph { width: 24px; height: 24px; border: 2px solid #777; border-radius: 7px; }
